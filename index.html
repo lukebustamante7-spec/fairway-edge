@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAIRWAY EDGE — Golf Betting Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Source+Code+Pro:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c1a0c;
+  --bg-card: #132013;
+  --bg-card-hover: #1a2e1a;
+  --bg-input: #0a160a;
+  --border: #2a4a2a;
+  --border-light: #3a6a3a;
+  --text: #e8f0e8;
+  --text-dim: #8aaa8a;
+  --text-muted: #5a7a5a;
+  --accent: #4ade80;
+  --accent-dim: #22c55e;
+  --gold: #fbbf24;
+  --gold-dim: #d97706;
+  --red: #f87171;
+  --red-dim: #dc2626;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --white: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* Header */
+header {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0f220f 0%, var(--bg) 100%);
+  position: relative;
+}
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, var(--accent), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.logo-sub {
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 0.15rem;
+}
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.header-stats {
+  display: flex;
+  gap: 2rem;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.header-stats span { color: var(--accent); font-weight: 600; }
+
+/* Navigation */
+nav {
+  display: flex;
+  gap: 0;
+  padding: 0 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-tab {
+  padding: 1rem 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+.nav-tab:hover { color: var(--text-dim); }
+.nav-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* Main Layout */
+main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Section Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border-light); }
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-title .icon { font-size: 1.1rem; }
+
+/* Form Elements */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.85rem;
+  transition: border-color 0.2s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
+select { cursor: pointer; }
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+  color: var(--bg);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(74,222,128,0.25); }
+.btn-secondary {
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--border-light); background: var(--bg-card); }
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  color: var(--bg);
+}
+.btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+.btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+
+/* Toggle Buttons */
+.toggle-group {
+  display: flex;
+  gap: 0;
+  background: var(--bg-input);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.toggle-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+}
+.toggle-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* Chips / Tags */
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'Source Code Pro', monospace;
+}
+.chip-green { background: rgba(74,222,128,0.15); color: var(--accent); }
+.chip-red { background: rgba(248,113,113,0.15); color: var(--red); }
+.chip-gold { background: rgba(251,191,36,0.15); color: var(--gold); }
+.chip-blue { background: rgba(96,165,250,0.15); color: var(--blue); }
+.chip-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+
+/* Results Table */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.results-table th {
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.results-table th.sortable { cursor: pointer; }
+.results-table th.sortable:hover { color: var(--text-dim); }
+.results-table td {
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid rgba(42,74,42,0.4);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.results-table tr:hover td { background: rgba(74,222,128,0.03); }
+.results-table .player-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  color: var(--text);
+}
+.results-table .positive { color: var(--accent); }
+.results-table .negative { color: var(--red); }
+.results-table .neutral { color: var(--text-dim); }
+
+/* Portfolio Viz */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+@media (max-width: 900px) { .portfolio-grid { grid-template-columns: 1fr; } }
+
+.stat-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  text-align: center;
+}
+.stat-value {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+}
+
+/* Bar Chart */
+.bar-chart { margin-top: 1rem; }
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.bar-label {
+  width: 140px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: right;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bar-track {
+  flex: 1;
+  height: 28px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding-left: 0.5rem;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--bg);
+  min-width: fit-content;
+  transition: width 0.5s ease;
+}
+.bar-fill.green { background: linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+.bar-fill.gold { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
+.bar-fill.blue { background: linear-gradient(90deg, #2563eb, var(--blue)); }
+.bar-fill.purple { background: linear-gradient(90deg, #7c3aed, var(--purple)); }
+.bar-fill.orange { background: linear-gradient(90deg, #ea580c, var(--orange)); }
+.bar-amt {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  width: 70px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Course Fit */
+.course-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.trait-chip {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+  transition: all 0.2s;
+  user-select: none;
+}
+.trait-chip.selected {
+  border-color: var(--accent);
+  background: rgba(74,222,128,0.1);
+  color: var(--accent);
+}
+
+/* Info Boxes */
+.info-box {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+.info-box.tip { background: rgba(74,222,128,0.08); border-left: 3px solid var(--accent); color: var(--text-dim); }
+.info-box.warn { background: rgba(251,191,36,0.08); border-left: 3px solid var(--gold); color: var(--text-dim); }
+
+/* Bet Tracker */
+.tracker-entry {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.6fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(42,74,42,0.3);
+  font-size: 0.8rem;
+}
+.tracker-entry input, .tracker-entry select {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+}
+.delete-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.delete-btn:hover { background: rgba(248,113,113,0.1); }
+
+/* Preview */
+.preview-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.7;
+  margin-top: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  header { padding: 1.5rem 1rem 1rem; }
+  .logo { font-size: 1.5rem; }
+  nav { padding: 0 0.5rem; overflow-x: auto; }
+  .nav-tab { padding: 0.75rem 1rem; font-size: 0.8rem; white-space: nowrap; }
+  main { padding: 1rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-row.triple { grid-template-columns: 1fr; }
+  .portfolio-grid { grid-template-columns: 1fr; }
+  .header-stats { display: none; }
+  .results-table { font-size: 0.75rem; }
+  .tracker-entry { grid-template-columns: 1fr 1fr; }
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+.empty-state .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.empty-state p { font-size: 0.9rem; max-width: 400px; margin: 0 auto; line-height: 1.6; }
+
+/* Highlight animation */
+@keyframes highlightRow {
+  0% { background: rgba(74,222,128,0.15); }
+  100% { background: transparent; }
+}
+.highlight-row td { animation: highlightRow 1.5s ease; }
+
+/* Sort indicators */
+.results-table th.sortable { cursor: pointer; user-select: none; position: relative; padding-right: 1.2rem; }
+.results-table th.sortable::after { content: '⇅'; position: absolute; right: 0.2rem; opacity: 0.3; font-size: 0.65rem; }
+.results-table th.sortable.sort-asc::after { content: '↑'; opacity: 0.8; color: var(--accent); }
+.results-table th.sortable.sort-desc::after { content: '↓'; opacity: 0.8; color: var(--accent); }
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-input);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.filter-bar label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.05em; margin: 0; }
+.filter-bar select, .filter-bar input {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  min-width: 100px;
+}
+.filter-pill {
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+}
+.filter-pill:hover { border-color: var(--border-light); }
+.filter-pill.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+
+/* Summary narrative */
+.summary-narrative {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(74,222,128,0.06), rgba(251,191,36,0.04));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  line-height: 1.75;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+.summary-narrative strong { color: var(--text); }
+.summary-narrative .highlight { color: var(--accent); font-weight: 600; }
+.summary-narrative .caution { color: var(--gold); font-weight: 600; }
+
+/* Comparison table */
+.compare-input-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: end;
+  margin-bottom: 0.75rem;
+}
+.compare-input-row input, .compare-input-row select { font-size: 0.8rem; padding: 0.5rem 0.7rem; }
+.best-odds { background: rgba(74,222,128,0.1) !important; border-color: var(--accent) !important; }
+.arb-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: 'Source Code Pro', monospace;
+  background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.1));
+  color: var(--gold);
+  border: 1px solid rgba(251,191,36,0.3);
+}
+
+/* Book tabs */
+.book-tab {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.book-tab:hover { border-color: var(--border-light); }
+.book-tab.active { border-color: var(--accent); background: rgba(74,222,128,0.06); }
+.book-tab.has-data { border-color: var(--accent); }
+.book-tab-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+.book-tab-status { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; font-family: 'Source Code Pro', monospace; }
+.book-tab.has-data .book-tab-status { color: var(--accent); }
+.book-input { display: none; }
+.book-input.active { display: block; }
+.book-input textarea { min-height: 180px; }
+
+/* Bet Sheet */
+.bet-sheet {
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.bet-sheet-header {
+  background: linear-gradient(135deg, rgba(74,222,128,0.12), rgba(74,222,128,0.04));
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.bet-sheet-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.bet-sheet-sub { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.2rem; }
+.bet-sheet-body { padding: 0; }
+.bet-sheet-row {
+  display: grid;
+  grid-template-columns: 0.4fr 2fr 0.8fr 1fr 0.8fr 1fr;
+  align-items: center;
+  padding: 0.7rem 1.5rem;
+  border-bottom: 1px solid rgba(42,74,42,0.3);
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+.bet-sheet-row:hover { background: rgba(74,222,128,0.03); }
+.bet-sheet-row:last-child { border-bottom: none; }
+.bet-sheet-row.header {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 1.5rem;
+  background: rgba(0,0,0,0.15);
+}
+.bet-sheet-rank {
+  font-family: 'Source Code Pro', monospace;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.bet-sheet-player { font-weight: 600; color: var(--text); }
+.bet-sheet-market { font-family: 'Source Code Pro', monospace; color: var(--text-dim); font-size: 0.82rem; }
+.bet-sheet-book { font-size: 0.78rem; }
+.bet-sheet-odds { font-family: 'Source Code Pro', monospace; font-weight: 600; color: var(--accent); font-size: 0.9rem; }
+.bet-sheet-size { font-family: 'Source Code Pro', monospace; font-weight: 700; color: var(--gold); font-size: 1rem; }
+.bet-sheet-edge { font-family: 'Source Code Pro', monospace; font-size: 0.78rem; color: var(--accent); }
+.bet-sheet-footer {
+  padding: 1rem 1.5rem;
+  background: rgba(0,0,0,0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .bet-sheet-row { grid-template-columns: 0.3fr 1.5fr 0.7fr 1fr; font-size: 0.78rem; padding: 0.6rem 1rem; }
+  .bet-sheet-row .bet-sheet-book, .bet-sheet-row .bet-sheet-edge { display: none; }
+  .bet-sheet-row.header .bet-sheet-book, .bet-sheet-row.header .bet-sheet-edge { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="lockScreen" style="position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg); z-index:10000; display:flex; align-items:center; justify-content:center;">
+  <div style="text-align:center; max-width:380px; padding:2rem;">
+    <div style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900; background:linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:0.3rem;">FAIRWAY EDGE</div>
+    <div style="font-size:0.75rem; letter-spacing:0.4em; color:var(--text-muted); text-transform:uppercase; margin-bottom:2rem;">Golf Betting Intelligence</div>
+    <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem;">Enter access code to continue</div>
+    <input type="password" id="lockPassword" placeholder="Access code" style="width:100%; padding:0.9rem 1.2rem; background:var(--bg-input); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Source Code Pro',monospace; font-size:1rem; text-align:center; letter-spacing:0.15em; outline:none; margin-bottom:1rem;" onkeydown="if(event.key==='Enter')unlockApp()">
+    <button onclick="unlockApp()" style="width:100%; padding:0.85rem; background:linear-gradient(135deg, var(--accent-dim), var(--accent)); color:var(--bg); border:none; border-radius:10px; font-family:'Outfit',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; letter-spacing:0.05em;">Unlock</button>
+    <div id="lockError" style="margin-top:1rem; font-size:0.8rem; color:var(--red); display:none;">Wrong code. Try again.</div>
+  </div>
+</div>
+<script>
+// === PASSWORD CONFIG ===
+// Change this to whatever you want your access code to be
+const ACCESS_CODE_HASH = 'rancho';
+
+function unlockApp() {
+  const input = document.getElementById('lockPassword').value.trim();
+  if (input === ACCESS_CODE_HASH) {
+    document.getElementById('lockScreen').style.display = 'none';
+    sessionStorage.setItem('fe_unlocked', '1');
+  } else {
+    document.getElementById('lockError').style.display = 'block';
+    document.getElementById('lockPassword').value = '';
+    document.getElementById('lockPassword').style.borderColor = 'var(--red)';
+    setTimeout(() => { document.getElementById('lockPassword').style.borderColor = 'var(--border)'; }, 1500);
+  }
+}
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem('fe_unlocked') === '1') {
+  document.getElementById('lockScreen').style.display = 'none';
+}
+</script>
+
+<header>
+  <div class="header-row">
+    <div>
+      <div class="logo">FAIRWAY EDGE</div>
+      <div class="logo-sub">Golf Betting Intelligence</div>
+    </div>
+    <div class="header-stats">
+      <div>Players <span id="dbCount">120</span></div>
+      <div>Model v<span>2.0</span></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-tab active" data-tab="analyze">Analyze</div>
+  <div class="nav-tab" data-tab="results">Results</div>
+  <div class="nav-tab" data-tab="tracker">Bet Tracker</div>
+  <div class="nav-tab" data-tab="compare">Odds Compare</div>
+  <div class="nav-tab" data-tab="database">Player DB</div>
+  <div class="nav-tab" data-tab="help">How It Works</div>
+</nav>
+
+<main>
+
+<!-- ===== ANALYZE TAB ===== -->
+<div class="tab-content active" id="tab-analyze">
+
+  <div class="card">
+    <div class="card-title"><span class="icon">⛳</span> Tournament Setup</div>
+    <div class="form-row triple">
+      <div>
+        <label>Tournament</label>
+        <select id="tournamentSelect" onchange="loadCourseFit()">
+          <option value="">— Select Tournament —</option>
+          <optgroup label="January 2026">
+            <option value="sony">Sony Open — Waialae CC</option>
+            <option value="amex">The American Express — PGA West</option>
+            <option value="farmers">Farmers Insurance Open — Torrey Pines</option>
+          </optgroup>
+          <optgroup label="February 2026">
+            <option value="wmphoenix">WM Phoenix Open — TPC Scottsdale</option>
+            <option value="pebble">AT&T Pebble Beach — Pebble Beach GL</option>
+            <option value="genesis">Genesis Invitational — Riviera CC</option>
+            <option value="cognizant">Cognizant Classic — PGA National</option>
+          </optgroup>
+          <optgroup label="March 2026">
+            <option value="api">Arnold Palmer Invitational — Bay Hill</option>
+            <option value="players">THE PLAYERS — TPC Sawgrass</option>
+            <option value="valspar">Valspar Championship — Innisbrook</option>
+            <option value="texas">Valero Texas Open — TPC San Antonio</option>
+          </optgroup>
+          <optgroup label="April 2026">
+            <option value="masters">Masters Tournament — Augusta National</option>
+            <option value="rbc">RBC Heritage — Harbour Town GL</option>
+            <option value="zurich">Zurich Classic — TPC Louisiana</option>
+            <option value="cadillac">Cadillac Championship — Trump Doral</option>
+          </optgroup>
+          <optgroup label="May 2026">
+            <option value="truist">Truist Championship — Quail Hollow</option>
+            <option value="pga">PGA Championship — Aronimink GC</option>
+            <option value="byron">CJ Cup Byron Nelson — TPC Craig Ranch</option>
+            <option value="colonial">Charles Schwab Challenge — Colonial CC</option>
+          </optgroup>
+          <optgroup label="June 2026">
+            <option value="memorial">Memorial Tournament — Muirfield Village</option>
+            <option value="usopen">U.S. Open — Shinnecock Hills</option>
+            <option value="travelers">Travelers Championship — TPC River Highlands</option>
+            <option value="rocket">Rocket Mortgage Classic — Detroit GC</option>
+          </optgroup>
+          <optgroup label="July 2026">
+            <option value="scottish">Genesis Scottish Open — Renaissance Club</option>
+            <option value="openchamp">The Open Championship — Royal Birkdale</option>
+            <option value="3m">3M Open — TPC Twin Cities</option>
+          </optgroup>
+          <optgroup label="August 2026">
+            <option value="wyndham">Wyndham Championship — Sedgefield CC</option>
+            <option value="fedex">FedEx St. Jude — TPC Southwind</option>
+            <option value="bmw">BMW Championship — Venue TBD</option>
+            <option value="tour">TOUR Championship — East Lake</option>
+          </optgroup>
+          <optgroup label="Other">
+            <option value="custom">Custom / Unlisted Event</option>
+          </optgroup>
+        </select>
+        <input type="text" id="tournamentName" placeholder="Or type a custom name..." style="margin-top:0.5rem; display:none;">
+      </div>
+      <div>
+        <label>Bankroll ($)</label>
+        <input type="number" id="bankroll" value="1000" min="50">
+      </div>
+      <div>
+        <label>Risk Level</label>
+        <select id="riskLevel">
+          <option value="conservative">Conservative (¼ Kelly)</option>
+          <option value="moderate" selected>Moderate (½ Kelly)</option>
+          <option value="aggressive">Aggressive (¾ Kelly)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="courseFitCard">
+    <div class="card-title"><span class="icon">🏗️</span> Course Fit Profile</div>
+    <div id="courseInfo" style="display:none; margin-bottom:1rem; padding:0.8rem 1rem; background:var(--bg-input); border-radius:8px; border:1px solid var(--border);">
+      <div style="font-size:0.82rem; font-weight:600; color:var(--text);" id="courseInfoName"></div>
+      <div style="font-size:0.78rem; color:var(--text-dim); margin-top:0.25rem; line-height:1.5;" id="courseInfoDetails"></div>
+    </div>
+    <div id="courseFitEmpty" class="info-box tip">Select a tournament above to auto-load course traits, or manually toggle traits below for unlisted events.</div>
+    <div class="course-traits" id="courseTraits">
+      <div class="trait-chip" data-trait="distance">🏋️ Favors Length</div>
+      <div class="trait-chip" data-trait="accuracy">🎯 Favors Accuracy</div>
+      <div class="trait-chip" data-trait="approach">📐 Premium on Approach</div>
+      <div class="trait-chip" data-trait="shortgame">⛳ Short Game Test</div>
+      <div class="trait-chip" data-trait="putting">🥏 Putting Premium</div>
+      <div class="trait-chip" data-trait="links">💨 Links / Wind</div>
+      <div class="trait-chip" data-trait="firmfast">🔥 Firm & Fast</div>
+      <div class="trait-chip" data-trait="par5scoring">🦅 Reachable Par 5s</div>
+    </div>
+  </div>
+
+  <!-- RECENT FORM -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📈</span> Recent Form <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem;">(optional — improves accuracy)</span></div>
+    <div class="info-box tip">Paste recent tournament results to adjust for hot/cold streaks. Format: <strong>Player Name, Finish Position, Event Name</strong> (one per line). Signature events and strong fields carry more weight. Most recent results matter most.<br>Use <strong>MC</strong> for missed cut, <strong>WD</strong> for withdrawal. Paste multiple results per player — the model weighs recent ones more.</div>
+    <div class="btn-row" style="margin-bottom:0.75rem;">
+      <button class="btn btn-secondary btn-sm" onclick="autoFillRecentForm()">⚡ Auto-Fill 2026 Season Results</button>
+    </div>
+    <textarea id="recentFormPaste" style="min-height:140px;" placeholder="Scottie Scheffler, 1, AT&T Pebble Beach
+Rory McIlroy, 3, Genesis Invitational
+Xander Schauffele, MC, WM Phoenix Open
+Collin Morikawa, 8, Farmers Insurance Open
+Ludvig Aberg, 2, The Players Championship
+Viktor Hovland, 25, Arnold Palmer Invitational
+Tommy Fleetwood, 5, Masters Tournament"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-sm" onclick="parseRecentForm()">Parse Form Data</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('recentFormPaste').value=''; window._recentForm = {}; document.getElementById('formPreview').style.display='none';">Clear</button>
+    </div>
+    <div class="preview-box" id="formPreview" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span> Paste Odds — Multi-Book</div>
+    <div class="info-box tip">Paste odds from each sportsbook. DraftKings and FanDuel often have different markets on separate pages — use the dropdown to select which market you're pasting, then paste and parse. Bets accumulate across parses so nothing gets overwritten.</div>
+
+    <!-- Book tabs -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-bottom:1rem;">
+      <div class="book-tab active" data-book="dk" onclick="switchBook('dk')">
+        <div class="book-tab-name">DraftKings</div>
+        <div class="book-tab-status" id="dkStatus">No data</div>
+      </div>
+      <div class="book-tab" data-book="fd" onclick="switchBook('fd')">
+        <div class="book-tab-name">FanDuel</div>
+        <div class="book-tab-status" id="fdStatus">No data</div>
+      </div>
+      <div class="book-tab" data-book="kalshi" onclick="switchBook('kalshi')">
+        <div class="book-tab-name">Kalshi</div>
+        <div class="book-tab-status" id="kalshiStatus">No data</div>
+      </div>
+    </div>
+
+    <!-- DK Book -->
+    <div class="book-input active" id="bookInput-dk">
+      <div style="margin-bottom:0.75rem;">
+        <label>Which DraftKings page are you pasting?</label>
+        <select id="dkMarket" style="max-width:280px;">
+          <option value="auto">Auto-detect from headers</option>
+          <option value="Win">Winner only</option>
+          <option value="Top5">Top 5 only</option>
+          <option value="Top10">Top 10 only</option>
+          <option value="Top20">Top 20 only</option>
+        </select>
+      </div>
+      <textarea id="dkPaste" placeholder="Copy the DraftKings golf odds page (Ctrl+A → Ctrl+C) and paste here...
+
+If the page has multiple columns (Winner + Top 5 + Top 10), leave dropdown on Auto-detect.
+If you're pasting a single-market page, select the market above.
+
+Paste → Parse → switch page → Paste again → Parse. Bets accumulate."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="parseBook('dk')">Parse DraftKings</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearBook('dk')">Clear All DK</button>
+      </div>
+    </div>
+
+    <!-- FD Book -->
+    <div class="book-input" id="bookInput-fd">
+      <div style="margin-bottom:0.75rem;">
+        <label>Which FanDuel page are you pasting?</label>
+        <select id="fdMarket" style="max-width:280px;">
+          <option value="auto">Auto-detect from headers</option>
+          <option value="Win">Winner only</option>
+          <option value="Top5">Top 5 only</option>
+          <option value="Top10">Top 10 only</option>
+          <option value="Top20">Top 20 only</option>
+        </select>
+      </div>
+      <textarea id="fdPaste" placeholder="Copy the FanDuel golf odds page and paste here...
+
+Same workflow as DraftKings — if it's a multi-column page, use Auto-detect.
+For single-market pages, select the market above.
+
+Paste → Parse → switch page → Paste again → Parse. Bets accumulate."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="parseBook('fd')">Parse FanDuel</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearBook('fd')">Clear All FD</button>
+      </div>
+    </div>
+
+    <!-- Kalshi Book -->
+    <div class="book-input" id="bookInput-kalshi">
+      <div style="margin-bottom:0.75rem;">
+        <label>Which Kalshi market is this?</label>
+        <select id="kalshiMarket" style="max-width:200px;">
+          <option value="Win">Winner</option>
+          <option value="Top5">Top 5</option>
+          <option value="Top10">Top 10</option>
+          <option value="Top20" selected>Top 20</option>
+        </select>
+      </div>
+      <textarea id="kalshiPaste" placeholder="Copy the Kalshi odds table and paste here...
+
+Tommy Fleetwood
+Yes  65¢No  98¢
+Matt Fitzpatrick
+Yes  57¢No  98¢
+
+Paste one market at a time → Parse → switch dropdown → paste next market → Parse again."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="parseBook('kalshi')">Parse Kalshi</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearBook('kalshi')">Clear All Kalshi</button>
+      </div>
+    </div>
+
+    <!-- Parse preview -->
+    <div class="preview-box" id="multiBookPreview" style="display:none;"></div>
+  </div>
+
+  <div class="btn-row" style="justify-content:center; margin-top:0.5rem;">
+    <button class="btn btn-gold" onclick="analyzePortfolio()" style="padding:1rem 3rem; font-size:1rem;">⚡ Analyze & Build Portfolio</button>
+  </div>
+</div>
+
+<!-- ===== RESULTS TAB ===== -->
+<div class="tab-content" id="tab-results">
+  <div id="resultsContent">
+    <div class="empty-state">
+      <div class="icon">📊</div>
+      <p>No analysis yet. Go to the Analyze tab, paste odds, and hit Analyze to see your portfolio recommendations.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BET TRACKER TAB ===== -->
+<div class="tab-content" id="tab-tracker">
+  <div class="card">
+    <div class="card-title"><span class="icon">📝</span> Bet Tracker</div>
+    <div class="info-box tip">Track your actual bets and results here. This helps you measure your performance over time and refine your approach.</div>
+
+    <div class="tracker-entry" style="font-weight:600; color:var(--text-muted); font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; border-bottom:1px solid var(--border);">
+      <div>Player / Market</div>
+      <div>Odds</div>
+      <div>Stake ($)</div>
+      <div>Result</div>
+      <div>P/L ($)</div>
+      <div></div>
+    </div>
+    <div id="trackerEntries"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="addTrackerRow()">+ Add Bet</button>
+      <button class="btn btn-secondary btn-sm" onclick="calcTrackerTotals()">Calculate Totals</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportTracker()">Export CSV</button>
+    </div>
+    <div id="trackerSummary" style="margin-top:1rem;"></div>
+  </div>
+</div>
+
+<!-- ===== ODDS COMPARE TAB ===== -->
+<div class="tab-content" id="tab-compare">
+  <div class="card">
+    <div class="card-title"><span class="icon">⚖️</span> Odds Comparison — Find the Best Line</div>
+    <div class="info-box tip">Enter odds from multiple sportsbooks to find the best price for each bet. The tool highlights the best odds and flags potential arbitrage opportunities where you can guarantee profit.</div>
+
+    <div id="compareEntries">
+      <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.5rem; font-size:0.72rem; font-weight:600; color:var(--text-muted); letter-spacing:0.05em; text-transform:uppercase; padding:0 0.1rem;">
+        <div>Player / Market</div>
+        <div>DraftKings</div>
+        <div>FanDuel</div>
+        <div>Kalshi</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="addCompareRow()">+ Add Row</button>
+      <button class="btn btn-primary btn-sm" onclick="analyzeComparison()">⚡ Compare & Find Best Odds</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearCompare()">Clear All</button>
+    </div>
+    <div id="compareResults" style="margin-top:1.5rem;"></div>
+  </div>
+</div>
+
+<!-- ===== PLAYER DB TAB ===== -->
+<div class="tab-content" id="tab-database">
+  <div class="card">
+    <div class="card-title"><span class="icon">🗄️</span> Player Database — <span id="dbTotal">120</span> Players</div>
+    <div class="info-box tip">Pre-loaded with current SG ratings by category. Search to find or update any player. Ratings update slowly — refresh quarterly for best results.</div>
+    <div style="margin-bottom:1rem;">
+      <input type="text" id="dbSearch" placeholder="Search players..." oninput="filterDB()">
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="results-table" id="dbTable">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Tier</th>
+            <th>SG: Total</th>
+            <th>SG: OTT</th>
+            <th>SG: APP</th>
+            <th>SG: ATG</th>
+            <th>SG: Putt</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dbBody"></tbody>
+      </table>
+    </div>
+    <div class="btn-row" style="margin-top:1rem;">
+      <button class="btn btn-secondary btn-sm" onclick="showAddPlayer()">+ Add Player</button>
+    </div>
+    <div id="addPlayerForm" style="display:none; margin-top:1rem;">
+      <div class="form-row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto; align-items:end;">
+        <div><label>Name</label><input type="text" id="newName" placeholder="Tiger Woods"></div>
+        <div><label>SG: Total</label><input type="number" id="newSGT" step="0.1" value="0"></div>
+        <div><label>SG: OTT</label><input type="number" id="newOTT" step="0.1" value="0"></div>
+        <div><label>SG: APP</label><input type="number" id="newAPP" step="0.1" value="0"></div>
+        <div><label>SG: ATG</label><input type="number" id="newATG" step="0.1" value="0"></div>
+        <div><label>SG: Putt</label><input type="number" id="newPUTT" step="0.1" value="0"></div>
+        <div><button class="btn btn-primary btn-sm" onclick="addNewPlayer()" style="margin-bottom:1px;">Save</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HELP TAB ===== -->
+<div class="tab-content" id="tab-help">
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> How Fairway Edge Works</div>
+    <div style="line-height:1.8; color:var(--text-dim); font-size:0.9rem;">
+      <p style="margin-bottom:1rem;"><strong style="color:var(--text);">The Model</strong> combines five key inputs to estimate each player's true probability of finishing in the top N, then compares that to what the sportsbook odds imply. When our estimate exceeds theirs, that's a <span class="chip chip-green">+EV</span> value bet.</p>
+
+      <p style="margin-bottom:1rem;"><strong style="color:var(--text);">1. Strokes Gained Categories</strong> — We break performance into Off-the-Tee (distance + accuracy), Approach (ball-striking — the single most predictive stat), Around-the-Green (short game), and Putting (volatile week to week, so we weight it less).</p>
+
+      <p style="margin-bottom:1rem;"><strong style="color:var(--text);">2. Composite Skill Rating</strong> — Each player gets a weighted composite: SG:Approach (35%) + SG:OTT (25%) + SG:ATG (20%) + SG:Putting (10%) + SG:Total baseline (10%). This reflects research showing ball-striking is far more predictive than putting.</p>
+
+      <p style="margin-bottom:1rem;"><strong style="color:var(--text);">3. Course Fit</strong> — When you tag course traits (favors length, accuracy premium, etc.), the model adjusts each player's rating by boosting the relevant SG categories. A bomber gets a lift at courses that reward distance; a wedge wizard rises at approach-heavy layouts.</p>
+
+      <p style="margin-bottom:1rem;"><strong style="color:var(--text);">4. True Probability Estimation</strong> — We convert the adjusted skill rating into win and top-N probabilities using a tournament simulation model that accounts for field size, rating distribution, and round-to-round variance.</p>
+
+      <p style="margin-bottom:1rem;"><strong style="color:var(--text);">5. Kelly Criterion Sizing</strong> — For every +EV bet, we compute optimal stake using fractional Kelly (you choose conservative/moderate/aggressive). This maximizes long-term bankroll growth while managing drawdown risk.</p>
+
+      <p><strong style="color:var(--text);">Edge = True Probability − Implied Probability.</strong> Positive edge means the market is underpricing a player. We build a diversified portfolio across tiers (favorites, mid-range, longshots) to balance expected return with variance.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">⚡</span> Weekly Workflow</div>
+    <div style="line-height:1.8; color:var(--text-dim); font-size:0.9rem;">
+      <p><strong style="color:var(--accent);">Step 1</strong> — Open DraftKings or Kalshi, navigate to the golf tournament.</p>
+      <p><strong style="color:var(--accent);">Step 2</strong> — Select all + copy the odds page.</p>
+      <p><strong style="color:var(--accent);">Step 3</strong> — Open Fairway Edge, set tournament name and bankroll.</p>
+      <p><strong style="color:var(--accent);">Step 4</strong> — (Optional) Select course fit traits for better accuracy.</p>
+      <p><strong style="color:var(--accent);">Step 5</strong> — Paste odds and click Analyze.</p>
+      <p><strong style="color:var(--accent);">Step 6</strong> — Review value bets, place your portfolio, log in Bet Tracker.</p>
+      <p style="margin-top:0.75rem;">Total time: <strong style="color:var(--gold);">2-3 minutes</strong>.</p>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===== PLAYER DATABASE =====
+// 120 players with SG categories: [total, ott, approach, atg, putting]
+// Based on 2025-2026 PGA Tour season averages
+const PLAYER_DB = [
+  // Elite Tier
+  {name:"Scottie Scheffler",sg:[2.50,0.70,1.10,0.35,0.35],tier:"Elite"},
+  {name:"Xander Schauffele",sg:[2.10,0.55,0.85,0.30,0.40],tier:"Elite"},
+  {name:"Rory McIlroy",sg:[2.00,0.80,0.65,0.20,0.35],tier:"Elite"},
+  {name:"Collin Morikawa",sg:[1.85,0.30,0.95,0.25,0.35],tier:"Elite"},
+  {name:"Ludvig Aberg",sg:[1.80,0.75,0.70,0.15,0.20],tier:"Elite"},
+  {name:"Hideki Matsuyama",sg:[1.75,0.45,0.80,0.25,0.25],tier:"Elite"},
+  {name:"Viktor Hovland",sg:[1.70,0.55,0.75,0.15,0.25],tier:"Elite"},
+  {name:"Patrick Cantlay",sg:[1.65,0.25,0.70,0.30,0.40],tier:"Elite"},
+  {name:"Tommy Fleetwood",sg:[1.60,0.50,0.65,0.25,0.20],tier:"Elite"},
+  {name:"Wyndham Clark",sg:[1.55,0.65,0.55,0.15,0.20],tier:"Elite"},
+  // Top Tier
+  {name:"Sam Burns",sg:[1.50,0.55,0.50,0.20,0.25],tier:"Top"},
+  {name:"Shane Lowry",sg:[1.45,0.25,0.60,0.35,0.25],tier:"Top"},
+  {name:"Matt Fitzpatrick",sg:[1.40,0.15,0.75,0.25,0.25],tier:"Top"},
+  {name:"Sahith Theegala",sg:[1.40,0.55,0.50,0.15,0.20],tier:"Top"},
+  {name:"Russell Henley",sg:[1.38,0.30,0.60,0.23,0.25],tier:"Top"},
+  {name:"Robert MacIntyre",sg:[1.35,0.50,0.50,0.15,0.20],tier:"Top"},
+  {name:"Keegan Bradley",sg:[1.30,0.45,0.45,0.20,0.20],tier:"Top"},
+  {name:"Sungjae Im",sg:[1.30,0.40,0.50,0.20,0.20],tier:"Top"},
+  {name:"Tony Finau",sg:[1.25,0.55,0.40,0.15,0.15],tier:"Top"},
+  {name:"Cameron Young",sg:[1.25,0.70,0.35,0.05,0.15],tier:"Top"},
+  {name:"Akshay Bhatia",sg:[1.20,0.50,0.45,0.10,0.15],tier:"Top"},
+  {name:"Justin Thomas",sg:[1.20,0.45,0.50,0.10,0.15],tier:"Top"},
+  {name:"Brian Harman",sg:[1.15,0.10,0.45,0.30,0.30],tier:"Top"},
+  {name:"Corey Conners",sg:[1.15,0.30,0.65,0.10,0.10],tier:"Top"},
+  {name:"Tom Kim",sg:[1.10,0.35,0.45,0.15,0.15],tier:"Top"},
+  {name:"Sepp Straka",sg:[1.10,0.40,0.40,0.15,0.15],tier:"Top"},
+  {name:"Jason Day",sg:[1.05,0.35,0.35,0.15,0.20],tier:"Top"},
+  {name:"Jordan Spieth",sg:[1.00,0.30,0.25,0.20,0.25],tier:"Top"},
+  {name:"Min Woo Lee",sg:[1.00,0.50,0.30,0.10,0.10],tier:"Top"},
+  {name:"Chris Gotterup",sg:[1.00,0.55,0.30,0.05,0.10],tier:"Top"},
+  // Solid Tier
+  {name:"Rickie Fowler",sg:[0.95,0.30,0.35,0.15,0.15],tier:"Solid"},
+  {name:"Ben Griffin",sg:[0.95,0.35,0.35,0.10,0.15],tier:"Solid"},
+  {name:"Si Woo Kim",sg:[0.90,0.30,0.35,0.10,0.15],tier:"Solid"},
+  {name:"Harris English",sg:[0.90,0.35,0.30,0.15,0.10],tier:"Solid"},
+  {name:"Adam Scott",sg:[0.88,0.40,0.30,0.08,0.10],tier:"Solid"},
+  {name:"Justin Rose",sg:[0.85,0.30,0.35,0.10,0.10],tier:"Solid"},
+  {name:"Maverick McNealy",sg:[0.85,0.25,0.30,0.15,0.15],tier:"Solid"},
+  {name:"Jake Knapp",sg:[0.82,0.55,0.20,0.02,0.05],tier:"Solid"},
+  {name:"Kurt Kitayama",sg:[0.80,0.35,0.25,0.10,0.10],tier:"Solid"},
+  {name:"Alex Noren",sg:[0.78,0.20,0.35,0.13,0.10],tier:"Solid"},
+  {name:"Taylor Pendrith",sg:[0.78,0.45,0.20,0.05,0.08],tier:"Solid"},
+  {name:"Nick Taylor",sg:[0.75,0.20,0.30,0.15,0.10],tier:"Solid"},
+  {name:"Max Homa",sg:[0.75,0.35,0.25,0.05,0.10],tier:"Solid"},
+  {name:"Harry Hall",sg:[0.72,0.30,0.22,0.10,0.10],tier:"Solid"},
+  {name:"Denny McCarthy",sg:[0.70,0.05,0.15,0.20,0.30],tier:"Solid"},
+  {name:"J.T. Poston",sg:[0.70,0.15,0.25,0.15,0.15],tier:"Solid"},
+  {name:"Aaron Rai",sg:[0.68,0.20,0.30,0.10,0.08],tier:"Solid"},
+  {name:"Pierceson Coody",sg:[0.65,0.35,0.20,0.05,0.05],tier:"Solid"},
+  {name:"J.J. Spaun",sg:[0.65,0.25,0.25,0.08,0.07],tier:"Solid"},
+  {name:"Daniel Berger",sg:[0.62,0.30,0.20,0.05,0.07],tier:"Solid"},
+  {name:"Ryan Fox",sg:[0.60,0.40,0.15,0.00,0.05],tier:"Solid"},
+  {name:"Garrick Higgo",sg:[0.58,0.35,0.18,0.00,0.05],tier:"Solid"},
+  {name:"Jacob Bridgeman",sg:[0.55,0.25,0.18,0.05,0.07],tier:"Solid"},
+  {name:"Ryan Gerard",sg:[0.55,0.30,0.15,0.05,0.05],tier:"Solid"},
+  // Mid Tier
+  {name:"Tom Hoge",sg:[0.50,0.25,0.20,0.03,0.02],tier:"Mid"},
+  {name:"Sam Stevens",sg:[0.50,0.25,0.15,0.05,0.05],tier:"Mid"},
+  {name:"Matt McCarty",sg:[0.48,0.30,0.12,0.03,0.03],tier:"Mid"},
+  {name:"Patrick Rodgers",sg:[0.48,0.25,0.15,0.04,0.04],tier:"Mid"},
+  {name:"Ryo Hisatsune",sg:[0.45,0.30,0.10,0.02,0.03],tier:"Mid"},
+  {name:"Max Greyserman",sg:[0.45,0.20,0.15,0.05,0.05],tier:"Mid"},
+  {name:"Michael Kim",sg:[0.42,0.15,0.15,0.05,0.07],tier:"Mid"},
+  {name:"Rico Hoey",sg:[0.40,0.20,0.12,0.04,0.04],tier:"Mid"},
+  {name:"Nicolas Echavarria",sg:[0.38,0.25,0.10,0.00,0.03],tier:"Mid"},
+  {name:"Andrew Novak",sg:[0.35,0.15,0.12,0.04,0.04],tier:"Mid"},
+  {name:"Kevin Yu",sg:[0.35,0.20,0.10,0.02,0.03],tier:"Mid"},
+  {name:"Marco Penge",sg:[0.33,0.20,0.08,0.02,0.03],tier:"Mid"},
+  {name:"Sami Valimaki",sg:[0.32,0.25,0.05,0.00,0.02],tier:"Mid"},
+  {name:"Max McGreevy",sg:[0.30,0.18,0.08,0.02,0.02],tier:"Mid"},
+  {name:"Bud Cauley",sg:[0.30,0.15,0.10,0.02,0.03],tier:"Mid"},
+  {name:"Lucas Glover",sg:[0.28,0.10,0.12,0.03,0.03],tier:"Mid"},
+  {name:"Matthias Schmid",sg:[0.22,0.15,0.05,0.00,0.02],tier:"Mid"},
+  {name:"Aldrich Potgieter",sg:[0.18,0.30,0.00,-0.05,-0.07],tier:"Mid"},
+  {name:"Jhonattan Vegas",sg:[0.15,0.20,0.00,-0.02,-0.03],tier:"Mid"},
+  {name:"Brian Campbell",sg:[0.05,0.05,0.00,-0.02,0.02],tier:"Mid"},
+  // Extra well-known players
+  {name:"Jon Rahm",sg:[2.20,0.65,0.85,0.30,0.40],tier:"Elite"},
+  {name:"Brooks Koepka",sg:[1.50,0.60,0.55,0.15,0.20],tier:"Top"},
+  {name:"Bryson DeChambeau",sg:[1.45,0.80,0.40,0.10,0.15],tier:"Top"},
+  {name:"Dustin Johnson",sg:[1.10,0.65,0.30,0.05,0.10],tier:"Top"},
+  {name:"Cameron Smith",sg:[1.40,0.25,0.45,0.35,0.35],tier:"Top"},
+  {name:"Phil Mickelson",sg:[0.40,0.15,0.10,0.10,0.05],tier:"Mid"},
+  {name:"Tiger Woods",sg:[0.30,0.10,0.10,0.05,0.05],tier:"Mid"},
+  {name:"Will Zalatoris",sg:[1.55,0.50,0.70,0.15,0.20],tier:"Top"},
+  {name:"Joaquin Niemann",sg:[1.35,0.55,0.45,0.15,0.20],tier:"Top"},
+  {name:"Tyrrell Hatton",sg:[1.30,0.35,0.50,0.20,0.25],tier:"Top"},
+  {name:"Max Homa",sg:[0.75,0.35,0.25,0.05,0.10],tier:"Solid"},
+  {name:"Davis Thompson",sg:[1.00,0.40,0.35,0.10,0.15],tier:"Solid"},
+  {name:"Byeong Hun An",sg:[0.85,0.30,0.30,0.10,0.15],tier:"Solid"},
+  {name:"Billy Horschel",sg:[0.90,0.25,0.35,0.15,0.15],tier:"Solid"},
+  {name:"Taylor Moore",sg:[0.65,0.30,0.20,0.05,0.10],tier:"Solid"},
+  {name:"Eric Cole",sg:[0.80,0.40,0.25,0.05,0.10],tier:"Solid"},
+  {name:"Austin Eckroat",sg:[0.70,0.35,0.20,0.05,0.10],tier:"Solid"},
+  {name:"Stephan Jaeger",sg:[0.75,0.20,0.30,0.10,0.15],tier:"Solid"},
+  {name:"Thomas Detry",sg:[0.80,0.30,0.25,0.10,0.15],tier:"Solid"},
+  {name:"Lee Hodges",sg:[0.60,0.25,0.20,0.05,0.10],tier:"Solid"},
+  {name:"Emiliano Grillo",sg:[0.70,0.20,0.30,0.10,0.10],tier:"Solid"},
+  {name:"Mark Hubbard",sg:[0.55,0.20,0.20,0.05,0.10],tier:"Solid"},
+  {name:"Chris Kirk",sg:[0.85,0.20,0.30,0.15,0.20],tier:"Solid"},
+  {name:"Luke List",sg:[0.60,0.45,0.15,-0.05,0.05],tier:"Solid"},
+  {name:"Keith Mitchell",sg:[0.65,0.45,0.15,0.00,0.05],tier:"Solid"},
+  {name:"Webb Simpson",sg:[0.55,0.05,0.30,0.10,0.10],tier:"Solid"},
+  {name:"Christiaan Bezuidenhout",sg:[0.80,0.25,0.30,0.10,0.15],tier:"Solid"},
+  {name:"Mackenzie Hughes",sg:[0.60,0.10,0.25,0.10,0.15],tier:"Solid"},
+  {name:"Taylor Montgomery",sg:[0.50,0.15,0.20,0.05,0.10],tier:"Mid"},
+  {name:"Doug Ghim",sg:[0.55,0.20,0.20,0.05,0.10],tier:"Solid"},
+  {name:"Ben An",sg:[0.50,0.15,0.20,0.05,0.10],tier:"Mid"},
+  {name:"Nate Lashley",sg:[0.40,0.25,0.10,0.00,0.05],tier:"Mid"},
+  {name:"Charley Hoffman",sg:[0.45,0.25,0.15,0.00,0.05],tier:"Mid"},
+  {name:"Gary Woodland",sg:[0.35,0.30,0.05,-0.05,0.05],tier:"Mid"},
+  {name:"Kevin Kisner",sg:[0.40,0.05,0.15,0.10,0.10],tier:"Mid"},
+  {name:"Adam Hadwin",sg:[0.55,0.15,0.20,0.10,0.10],tier:"Solid"},
+  {name:"Brendon Todd",sg:[0.45,0.00,0.15,0.10,0.20],tier:"Mid"},
+  {name:"Francesco Molinari",sg:[0.35,0.10,0.15,0.05,0.05],tier:"Mid"},
+  {name:"Davis Riley",sg:[0.70,0.30,0.25,0.05,0.10],tier:"Solid"},
+  {name:"Cam Davis",sg:[0.60,0.30,0.15,0.05,0.10],tier:"Solid"},
+  {name:"Nick Dunlap",sg:[0.75,0.35,0.25,0.05,0.10],tier:"Solid"},
+  {name:"Beau Hossler",sg:[0.55,0.30,0.15,0.05,0.05],tier:"Solid"},
+  {name:"Ben Kohles",sg:[0.40,0.15,0.15,0.05,0.05],tier:"Mid"},
+  {name:"Chandler Phillips",sg:[0.35,0.20,0.10,0.02,0.03],tier:"Mid"},
+  {name:"S.H. Kim",sg:[0.50,0.20,0.15,0.05,0.10],tier:"Mid"},
+  {name:"Alex Smalley",sg:[0.55,0.15,0.25,0.05,0.10],tier:"Solid"},
+  {name:"Erik van Rooyen",sg:[0.65,0.30,0.20,0.05,0.10],tier:"Solid"},
+  {name:"Tommy Fleetwood",sg:[1.60,0.50,0.65,0.25,0.20],tier:"Elite"},
+];
+
+// Deduplicate DB (keep first occurrence)
+const seen = new Set();
+const PLAYERS = PLAYER_DB.filter(p => {
+  const key = p.name.toLowerCase();
+  if (seen.has(key)) return false;
+  seen.add(key);
+  return true;
+}).sort((a,b) => b.sg[0] - a.sg[0]);
+
+document.getElementById('dbCount').textContent = PLAYERS.length;
+document.getElementById('dbTotal').textContent = PLAYERS.length;
+
+// ===== NAVIGATION =====
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== MULTI-BOOK SYSTEM =====
+const bookData = { dk: [], fd: [], kalshi: [] };
+const bookNames = { dk: 'DraftKings', fd: 'FanDuel', kalshi: 'Kalshi' };
+
+function switchBook(book) {
+  document.querySelectorAll('.book-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.book-input').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.book-tab[data-book="${book}"]`).classList.add('active');
+  document.getElementById('bookInput-' + book).classList.add('active');
+}
+
+function clearBook(book) {
+  const textareaMap = { dk: 'dkPaste', fd: 'fdPaste', kalshi: 'kalshiPaste' };
+  document.getElementById(textareaMap[book]).value = '';
+  bookData[book] = [];
+  updateBookStatus(book, 0);
+  document.getElementById('multiBookPreview').style.display = 'none';
+}
+
+function updateBookStatus(book, count) {
+  const statusEl = document.getElementById(book + 'Status');
+  const tabEl = document.querySelector(`.book-tab[data-book="${book}"]`);
+  if (count > 0) {
+    // Count unique markets
+    const markets = [...new Set(bookData[book].map(b => b.market))].filter(m => !m.endsWith(' No'));
+    statusEl.textContent = `✓ ${count} bets · ${markets.join(', ')}`;
+    tabEl.classList.add('has-data');
+  } else {
+    statusEl.textContent = 'No data';
+    tabEl.classList.remove('has-data');
+  }
+}
+
+function parseBook(book) {
+  const textareaMap = { dk: 'dkPaste', fd: 'fdPaste', kalshi: 'kalshiPaste' };
+  const raw = document.getElementById(textareaMap[book]).value;
+  if (!raw.trim()) return;
+
+  let newBets;
+  if (book === 'kalshi') {
+    newBets = parseManualFormat(raw);
+  } else {
+    // Check if user selected a specific market override
+    const marketSelectId = book === 'dk' ? 'dkMarket' : 'fdMarket';
+    const marketOverride = document.getElementById(marketSelectId)?.value;
+
+    newBets = parseTableFormat(raw);
+
+    // If user selected a specific market (not auto), override all parsed markets
+    if (marketOverride && marketOverride !== 'auto') {
+      newBets.forEach(b => b.market = marketOverride);
+    }
+  }
+
+  // Tag each bet with book source
+  newBets.forEach(b => b.book = book);
+
+  // Accumulate: keep old bets from different markets, replace same markets
+  const newMarkets = new Set(newBets.map(b => b.market));
+  const oldBets = bookData[book].filter(b => !newMarkets.has(b.market));
+  bookData[book] = [...oldBets, ...newBets];
+
+  updateBookStatus(book, bookData[book].length);
+  showMultiBookPreview();
+}
+
+function parseTableFormat(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const marketMap = { 'winner': 'Win', 'top 5': 'Top5', 'top 10': 'Top10', 'top 20': 'Top20' };
+  const oddsPattern = /^[+-−]?\d{2,}$/;
+
+  // Strategy: find the LAST standalone "Winner" line (the real column header, not promo text)
+  // Then scan forward generously to collect all market headers before player data begins
+  let headerStart = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const low = lines[i].toLowerCase().replace(/\(.*?\)/g, '').trim();
+    if (low === 'winner' || low === 'tournament winner') {
+      headerStart = i;
+      break;
+    }
+  }
+
+  const marketLabels = [];
+
+  if (headerStart >= 0) {
+    // Scan forward from Winner — look for market header lines
+    // Be generous with the window (up to 20 lines) but stop once we see a player name followed by odds
+    let foundFirstPlayer = false;
+    for (let i = headerStart; i < Math.min(headerStart + 20, lines.length); i++) {
+      const low = lines[i].toLowerCase().replace(/\(.*?\)/g, '').trim();
+
+      // Check for market headers
+      for (const [key, val] of Object.entries(marketMap)) {
+        if (low.includes(key) && !marketLabels.includes(val)) {
+          marketLabels.push(val);
+        }
+      }
+
+      // If we've found at least one header and now see odds after a name, we're done with headers
+      if (marketLabels.length > 0 && oddsPattern.test(lines[i].replace(/−/g, '-'))) {
+        // Only break if the PREVIOUS non-odds line looked like a player name (not a header)
+        // This means we've passed through all headers and into the data
+        if (foundFirstPlayer) break;
+      }
+
+      // Track if we've seen what looks like a player name
+      const isMarketHeader = /^(winner|tournament winner|top \d+)/i.test(low);
+      if (!isMarketHeader && low.length > 3 && low.length < 35 && /[a-z] [a-z]/i.test(lines[i])) {
+        foundFirstPlayer = true;
+      }
+    }
+  }
+
+  // Fallback: if no headers found via Winner scan, try a broader approach
+  if (marketLabels.length === 0) {
+    // Look for lines that are exactly/mainly a market name (short lines only)
+    for (const line of lines) {
+      const low = line.toLowerCase().replace(/\(.*?\)/g, '').trim();
+      if (low.length > 40) continue;
+      for (const [key, val] of Object.entries(marketMap)) {
+        if ((low === key || low.startsWith(key)) && !marketLabels.includes(val)) {
+          marketLabels.push(val);
+        }
+      }
+      if (marketLabels.length > 0 && oddsPattern.test(line.replace(/−/g, '-'))) break;
+    }
+  }
+
+  if (marketLabels.length === 0) marketLabels.push('Win');
+
+  // Parse player + odds — start from after the header cluster to skip promo odds
+  const scanStart = headerStart >= 0 ? headerStart : 0;
+  const bets = [];
+  let currentPlayer = null;
+  let currentOdds = [];
+
+  for (let i = scanStart; i < lines.length; i++) {
+    const cleaned = lines[i].replace(/−/g, '-').replace(/[""]/g, '');
+    if (oddsPattern.test(cleaned)) {
+      currentOdds.push(cleaned.startsWith('+') || cleaned.startsWith('-') ? cleaned : '+' + cleaned);
+    } else {
+      if (currentPlayer && currentOdds.length > 0) {
+        for (let k = 0; k < Math.min(currentOdds.length, marketLabels.length); k++) {
+          bets.push({ player: currentPlayer, market: marketLabels[k], odds: currentOdds[k] });
+        }
+      }
+      // Strict: only accept as player name if it's a clean name-like line
+      const isHeader = /^(winner|top \d|including|ties|tournament winner)$/i.test(cleaned.replace(/\(.*?\)/g,'').trim());
+      const isDate = /^\w{3}\s+\w{3}\s+\d/i.test(cleaned);
+      const isNoise = /show more|place a bet|same game|round \d|people placed|pays \$|team logo|background|bet slip|sportsbook|view full|article|responsible|log in|popular|^\d+ people|betting news|back |finish top|to win |to finish|these are|count on/i.test(cleaned);
+      const isShortNoise = /^(am|pm|live|more|specials|outrights|groups|region|leader)$/i.test(cleaned);
+      if (!isHeader && !isDate && !isNoise && !isShortNoise && cleaned.length > 2 && cleaned.length < 40 && /[a-z]/i.test(cleaned) && !/^\d/.test(cleaned) && !/^\$/.test(cleaned) && !/^\+/.test(cleaned)) {
+        currentPlayer = cleaned;
+        currentOdds = [];
+      }
+    }
+  }
+  if (currentPlayer && currentOdds.length > 0) {
+    for (let k = 0; k < Math.min(currentOdds.length, marketLabels.length); k++) {
+      bets.push({ player: currentPlayer, market: marketLabels[k], odds: currentOdds[k] });
+    }
+  }
+  return bets;
+}
+
+function parseManualFormat(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const bets = [];
+  const mMap = { 'win':'Win','w':'Win','winner':'Win','top5':'Top5','t5':'Top5','top 5':'Top5',
+    'top10':'Top10','t10':'Top10','top 10':'Top10','top20':'Top20','t20':'Top20','top 20':'Top20' };
+
+  // Detect Kalshi Yes/No ¢ format: "Yes  65¢No  98¢" or "Yes 65¢ No 98¢"
+  const kalshiPattern = /yes\s+(\d+)\s*¢/i;
+  const isKalshiFormat = lines.some(l => kalshiPattern.test(l));
+
+  if (isKalshiFormat) {
+    // Detect market from the Kalshi page context
+    // Check first few lines for market hints
+    let market = 'Win'; // default
+    const fullText = raw.toLowerCase();
+    if (fullText.includes('top 20') || fullText.includes('t20')) market = 'Top20';
+    else if (fullText.includes('top 10') || fullText.includes('t10')) market = 'Top10';
+    else if (fullText.includes('top 5') || fullText.includes('t5')) market = 'Top5';
+    else if (fullText.includes('winner') || fullText.includes('to win')) market = 'Win';
+
+    // Also check the kalshi market selector label at top of paste
+    const marketSelectEl = document.getElementById('kalshiMarket');
+    if (marketSelectEl && marketSelectEl.value) market = marketSelectEl.value;
+
+    let currentPlayer = null;
+    for (const line of lines) {
+      const yesMatch = line.match(/yes\s+(\d+)\s*¢/i);
+      const noMatch = line.match(/no\s+(\d+)\s*¢/i);
+
+      if (yesMatch) {
+        if (currentPlayer) {
+          // YES bet: player finishes in that position
+          const yesCents = parseInt(yesMatch[1]);
+          const yesProb = yesCents / 100;
+          let yesAmerican;
+          if (yesProb >= 0.5) yesAmerican = '-' + Math.round(yesProb / (1 - yesProb) * 100);
+          else yesAmerican = '+' + Math.round((1 - yesProb) / yesProb * 100);
+          bets.push({ player: currentPlayer, market, odds: yesAmerican, rawProb: yesProb, side: 'yes' });
+
+          // NO bet: player does NOT finish in that position
+          if (noMatch) {
+            const noCents = parseInt(noMatch[1]);
+            const noProb = noCents / 100;
+            let noAmerican;
+            if (noProb >= 0.5) noAmerican = '-' + Math.round(noProb / (1 - noProb) * 100);
+            else noAmerican = '+' + Math.round((1 - noProb) / noProb * 100);
+            bets.push({ player: currentPlayer, market: market + ' No', odds: noAmerican, rawProb: noProb, side: 'no' });
+          }
+
+          currentPlayer = null;
+        }
+      } else {
+        const cleaned = line.replace(/[""]/g, '').trim();
+        const isNoise = /^(yes|no|top\s?\d|winner|market|event|share|¢|\d+¢)/i.test(cleaned);
+        if (!isNoise && cleaned.length > 2 && /[a-z]/i.test(cleaned) && !/^\d/.test(cleaned)) {
+          currentPlayer = cleaned;
+        }
+      }
+    }
+    return bets;
+  }
+
+  // Standard pipe/space format
+  for (const line of lines) {
+    let parts = line.split('|').map(s => s.trim());
+    if (parts.length >= 3) {
+      const market = mMap[parts[1].toLowerCase()] || parts[1];
+      bets.push({ player: parts[0], market, odds: parts[2] });
+      continue;
+    }
+    const match = line.match(/^(.+?)\s+(win|w|top\s?\d+|t\d+|winner)\s+([+-−]?\d+\.?\d*%?¢?)\s*$/i);
+    if (match) {
+      const market = mMap[match[2].toLowerCase().replace(/\s/g,'')] || match[2];
+      bets.push({ player: match[1].trim(), market, odds: match[3].replace('−','-') });
+    }
+  }
+  return bets;
+}
+
+function showMultiBookPreview() {
+  const preview = document.getElementById('multiBookPreview');
+  const totals = Object.entries(bookData).filter(([k,v]) => v.length > 0);
+  if (totals.length === 0) { preview.style.display = 'none'; return; }
+
+  const totalBets = totals.reduce((s, [k,v]) => s + v.length, 0);
+  const allPlayers = new Set();
+  totals.forEach(([k,v]) => v.forEach(b => allPlayers.add(b.player)));
+
+  preview.style.display = 'block';
+  preview.innerHTML = `<span style="color:var(--accent);">✓ ${totalBets} total bets loaded across ${totals.length} book${totals.length > 1 ? 's' : ''}</span>\n` +
+    totals.map(([k,v]) => {
+      const markets = [...new Set(v.map(b => b.market))].filter(m => !m.endsWith(' No'));
+      const noCount = v.filter(b => b.market.endsWith(' No')).length;
+      return `<span style="color:var(--text-dim);">${bookNames[k]}: ${v.length} bets (${new Set(v.map(b=>b.player)).size} players) · Markets: ${markets.join(', ')}${noCount > 0 ? ' + ' + noCount + ' No bets' : ''}</span>`;
+    }).join('\n') +
+    `\n<span style="color:var(--text-muted);">${allPlayers.size} unique players across all books</span>`;
+}
+
+// ===== COURSE PROFILES DATABASE =====
+const COURSE_PROFILES = {
+  sony: {
+    name: "Waialae Country Club", location: "Honolulu, HI", yards: 7044, par: 70,
+    traits: ["accuracy", "approach", "putting"],
+    notes: "Tight, tree-lined fairways. Accuracy off the tee is critical. Small, firm greens reward precise iron play. Historically favors shorter, accurate players.",
+    history: {"Hideki Matsuyama":[1,2,3],"Russell Henley":[1,4,8],"Tom Kim":[1,5],"Si Woo Kim":[1,3,12],"Matt Kuchar":[1,2,7],"Brian Harman":[2,5,8],"Sungjae Im":[3,6,10],"Corey Conners":[4,7,12]}
+  },
+  amex: {
+    name: "PGA West (Stadium Course)", location: "La Quinta, CA", yards: 7174, par: 72,
+    traits: ["distance", "approach", "par5scoring"],
+    notes: "Desert layout with scorable par 5s. Length is rewarded — long hitters can overpower the course. Approach play matters on firm greens.",
+    history: {"Nick Dunlap":[1],"Scottie Scheffler":[2,5],"Justin Thomas":[1,3,8],"Jon Rahm":[1,2],"Davis Thompson":[3,8],"Sam Burns":[4,10]}
+  },
+  farmers: {
+    name: "Torrey Pines (South Course)", location: "San Diego, CA", yards: 7765, par: 72,
+    traits: ["distance", "approach", "links"],
+    notes: "One of the longest courses on tour. Favors big hitters who can handle coastal wind. Poa annua greens add putting randomness.",
+    history: {"Hideki Matsuyama":[1,6],"Xander Schauffele":[2,5,12],"Collin Morikawa":[1,3],"Justin Rose":[2,5,10],"Jason Day":[1,3,8],"Tony Finau":[2,4,9],"Luke List":[2,6]}
+  },
+  wmphoenix: {
+    name: "TPC Scottsdale (Stadium)", location: "Scottsdale, AZ", yards: 7261, par: 71,
+    traits: ["accuracy", "approach", "par5scoring"],
+    notes: "Wide fairways but premium on approach shot accuracy. Reachable par 5s create birdie opportunities. Firm, fast greens in desert conditions.",
+    history: {"Nick Taylor":[1],"Scottie Scheffler":[1,5,8],"Wyndham Clark":[2,8],"Justin Thomas":[1,2,6],"Hideki Matsuyama":[2,5],"Sam Burns":[3,7],"Sahith Theegala":[2,4]}
+  },
+  pebble: {
+    name: "Pebble Beach Golf Links", location: "Pebble Beach, CA", yards: 6828, par: 72,
+    traits: ["accuracy", "approach", "shortgame", "links"],
+    notes: "Short but technical coastal course. Wind is a major factor. Small greens demand precision. Short game is crucial around tiny, sloped greens.",
+    history: {"Wyndham Clark":[1,5],"Ludvig Aberg":[2],"Justin Rose":[2,6],"Jordan Spieth":[1,3,8],"Nick Taylor":[1,5,12],"Daniel Berger":[1,5],"Matt Fitzpatrick":[4,8]}
+  },
+  genesis: {
+    name: "Riviera Country Club", location: "Pacific Palisades, CA", yards: 7322, par: 71,
+    traits: ["approach", "shortgame", "firmfast"],
+    notes: "One of the best tests on tour. Kikuyu rough is punishing. Firm, fast greens with subtle breaks. Approach play is the #1 differentiator. Elite field.",
+    history: {"Hideki Matsuyama":[1,2],"Scottie Scheffler":[2,4,8],"Patrick Cantlay":[1,3,5],"Collin Morikawa":[3,6,10],"Rory McIlroy":[5,8,12],"Max Homa":[1,5,8],"Dustin Johnson":[1,2,5],"Adam Scott":[1,3,6]}
+  },
+  cognizant: {
+    name: "PGA National (Champion Course)", location: "Palm Beach Gardens, FL", yards: 7125, par: 70,
+    traits: ["accuracy", "approach", "links"],
+    notes: "Nicknamed 'The Bear Trap' (holes 15-17). Wind-exposed, water on many holes. Accuracy is paramount. Ball-striking wins here.",
+    history: {"Chris Kirk":[1,5],"Shane Lowry":[2,6],"Eric Cole":[1,8],"Sungjae Im":[2,4,7],"Sepp Straka":[3,8],"Matt Fitzpatrick":[4,10]}
+  },
+  api: {
+    name: "Bay Hill Club & Lodge", location: "Orlando, FL", yards: 7466, par: 72,
+    traits: ["distance", "approach", "par5scoring"],
+    notes: "Long, demanding course with water in play frequently. Favors powerful ball-strikers who can attack par 5s. Approach play is key on large greens.",
+    history: {"Scottie Scheffler":[1,1,3],"Rory McIlroy":[1,3,6],"Kurt Kitayama":[1,5],"Tyrrell Hatton":[2,5],"Viktor Hovland":[3,8],"Collin Morikawa":[4,6]}
+  },
+  players: {
+    name: "TPC Sawgrass (Stadium)", location: "Ponte Vedra Beach, FL", yards: 7245, par: 72,
+    traits: ["accuracy", "approach", "shortgame"],
+    notes: "The 'fifth major.' Demands accuracy off the tee (water everywhere). Island green 17th is iconic. Short game around tricky greens separates the field.",
+    history: {"Scottie Scheffler":[1,3],"Wyndham Clark":[2,5],"Xander Schauffele":[2,4,8],"Justin Thomas":[1,6,10],"Cameron Smith":[1,2],"Rory McIlroy":[3,5,8],"Tommy Fleetwood":[4,8]}
+  },
+  valspar: {
+    name: "Innisbrook (Copperhead)", location: "Palm Harbor, FL", yards: 7340, par: 71,
+    traits: ["accuracy", "approach", "firmfast"],
+    notes: "Tight, tree-lined fairways. Premium on tee shot accuracy and approach play. The 'Snake Pit' (holes 16-18) is one of the toughest finishes on tour.",
+    history: {"Sam Burns":[1,1,3],"Justin Thomas":[1,4],"Davis Riley":[2,5],"Adam Hadwin":[1,6],"Corey Conners":[3,8]}
+  },
+  texas: {
+    name: "TPC San Antonio (The Oaks)", location: "San Antonio, TX", yards: 7494, par: 72,
+    traits: ["distance", "approach", "par5scoring"],
+    notes: "Long course in Texas Hill Country. Favors length and solid approach play. Par 5s are scoring opportunities for long hitters.",
+    history: {}
+  },
+  masters: {
+    name: "Augusta National Golf Club", location: "Augusta, GA", yards: 7545, par: 72,
+    traits: ["distance", "approach", "shortgame", "par5scoring", "putting"],
+    notes: "The most prestigious event in golf. Length is crucial to attack par 5s. Approach shot precision on undulating greens is vital. Putting on Augusta's glass-like surfaces separates contenders. Short game around the greens is equally important.",
+    history: {"Scottie Scheffler":[1,1,10],"Jon Rahm":[1,5,7],"Hideki Matsuyama":[1,2,5],"Rory McIlroy":[2,4,5,8],"Patrick Cantlay":[3,6,9],"Xander Schauffele":[2,3,5],"Collin Morikawa":[5,8],"Cameron Smith":[2,3],"Jordan Spieth":[1,2,3,11],"Dustin Johnson":[1,2,4],"Justin Thomas":[4,8,12],"Brooks Koepka":[2,7],"Tommy Fleetwood":[6,10]}
+  },
+  rbc: {
+    name: "Harbour Town Golf Links", location: "Hilton Head, SC", yards: 7135, par: 71,
+    traits: ["accuracy", "shortgame", "putting"],
+    notes: "Pete Dye design with tight, tree-lined fairways. Small greens demand accuracy. Short game and putting are the key differentiators. Favors finesse over power.",
+    history: {"Matt Fitzpatrick":[1,6],"Collin Morikawa":[2,5],"Brian Harman":[3,8],"Shane Lowry":[4,7],"Denny McCarthy":[3,6],"Webb Simpson":[1,2,4],"J.T. Poston":[5,8]}
+  },
+  zurich: {
+    name: "TPC Louisiana", location: "Avondale, LA", yards: 7425, par: 72,
+    traits: ["distance", "par5scoring"],
+    notes: "Team event. Long, open course that favors aggressive play and length. Par 5s are very scorable.",
+    history: {}
+  },
+  cadillac: {
+    name: "Trump National Doral (Blue Monster)", location: "Miami, FL", yards: 7600, par: 72,
+    traits: ["distance", "approach", "links"],
+    notes: "Long, wind-exposed course with water on nearly every hole. Favors powerful ball-strikers who handle wind well.",
+    history: {}
+  },
+  truist: {
+    name: "Quail Hollow Club", location: "Charlotte, NC", yards: 7554, par: 71,
+    traits: ["distance", "approach", "firmfast"],
+    notes: "Long, demanding course. The 'Green Mile' finish (holes 16-18) is brutal. Favors elite ball-strikers with length.",
+    history: {}
+  },
+  pga: {
+    name: "Aronimink Golf Club", location: "Newtown Square, PA", yards: 7300, par: 70,
+    traits: ["approach", "accuracy", "shortgame", "firmfast"],
+    notes: "Classic Donald Ross design hosting a major. Tight fairways and firm greens demand precision. Approach play and short game around well-protected greens will be paramount.",
+    history: {}
+  },
+  byron: {
+    name: "TPC Craig Ranch", location: "McKinney, TX", yards: 7468, par: 72,
+    traits: ["distance", "par5scoring", "putting"],
+    notes: "Relatively open, scorable course. Birdie-fest conditions favor aggressive play. Long hitters who putt well can go very low.",
+    history: {}
+  },
+  colonial: {
+    name: "Colonial Country Club", location: "Fort Worth, TX", yards: 7209, par: 70,
+    traits: ["accuracy", "approach", "shortgame"],
+    notes: "'Hogan's Alley' — a classic that rewards precision. Tight fairways with small greens. Ball-striking accuracy is the primary predictor. Short game is critical.",
+    history: {}
+  },
+  memorial: {
+    name: "Muirfield Village Golf Club", location: "Dublin, OH", yards: 7533, par: 72,
+    traits: ["distance", "approach", "firmfast"],
+    notes: "Jack Nicklaus design. Sets up firm and fast, demanding length and precision. Elite ball-striking required. One of the tougher courses on tour.",
+    history: {}
+  },
+  usopen: {
+    name: "Shinnecock Hills Golf Club", location: "Southampton, NY", yards: 7400, par: 70,
+    traits: ["accuracy", "approach", "shortgame", "links", "firmfast"],
+    notes: "U.S. Open conditions — narrow fairways, deep rough, firm greens. Links-influenced layout exposed to wind. Every phase of the game is tested. Accuracy and approach precision are critical.",
+    history: {}
+  },
+  travelers: {
+    name: "TPC River Highlands", location: "Cromwell, CT", yards: 6841, par: 70,
+    traits: ["accuracy", "putting", "par5scoring"],
+    notes: "Short, scorable course. Accuracy off the tee matters in tight fairways. Putting performance often decides the winner. Reachable par 5s for birdies.",
+    history: {}
+  },
+  rocket: {
+    name: "Detroit Golf Club", location: "Detroit, MI", yards: 7370, par: 72,
+    traits: ["accuracy", "approach", "putting"],
+    notes: "Classic Donald Ross design. Tree-lined fairways demand accuracy. Approach shots to undulating greens are key. Putting on Ross greens separates the field.",
+    history: {}
+  },
+  scottish: {
+    name: "Renaissance Club", location: "North Berwick, Scotland", yards: 7237, par: 70,
+    traits: ["distance", "approach", "links"],
+    notes: "Links course exposed to Scottish coastal wind. Ground game is important. Length helps on this layout. Wind adaptation is critical.",
+    history: {}
+  },
+  openchamp: {
+    name: "Royal Birkdale", location: "Southport, England", yards: 7200, par: 70,
+    traits: ["accuracy", "approach", "shortgame", "links"],
+    notes: "Classic Open Championship links. Wind, pot bunkers, and firm fairways demand creativity. Accuracy and short game are vital. Links experience is a huge advantage.",
+    history: {}
+  },
+  "3m": {
+    name: "TPC Twin Cities", location: "Blaine, MN", yards: 7431, par: 71,
+    traits: ["distance", "par5scoring", "putting"],
+    notes: "Relatively open and scorable. Long hitters have an advantage. Par 5 scoring and putting are key differentiators.",
+    history: {}
+  },
+  wyndham: {
+    name: "Sedgefield Country Club", location: "Greensboro, NC", yards: 7131, par: 70,
+    traits: ["accuracy", "shortgame", "putting"],
+    notes: "Short, tight Donald Ross design. Accuracy is essential. Small, crowned greens demand short game precision. Putting on tricky surfaces decides outcomes.",
+    history: {}
+  },
+  fedex: {
+    name: "TPC Southwind", location: "Memphis, TN", yards: 7243, par: 70,
+    traits: ["accuracy", "approach", "shortgame"],
+    notes: "FedEx Cup playoff event. Tight fairways with water in play. Ball-striking accuracy is paramount. Short game around well-bunkered greens matters.",
+    history: {}
+  },
+  bmw: {
+    name: "BMW Championship Venue", location: "TBD", yards: 7400, par: 72,
+    traits: ["distance", "approach", "firmfast"],
+    notes: "Typically a demanding course set up for the best players. Length and approach play are usually key factors.",
+    history: {}
+  },
+  tour: {
+    name: "East Lake Golf Club", location: "Atlanta, GA", yards: 7346, par: 70,
+    traits: ["approach", "accuracy", "firmfast"],
+    notes: "Season finale. Recently renovated. Firm, fast greens reward approach precision. Accuracy off the tee on a tight layout. Only top 30 players compete.",
+    history: {}
+  }
+};
+
+function loadCourseFit() {
+  const sel = document.getElementById('tournamentSelect').value;
+  const customInput = document.getElementById('tournamentName');
+  const infoBox = document.getElementById('courseInfo');
+  const emptyMsg = document.getElementById('courseFitEmpty');
+
+  // Show/hide custom name input
+  customInput.style.display = (sel === 'custom') ? 'block' : 'none';
+
+  // Clear all traits
+  selectedTraits.clear();
+  document.querySelectorAll('.trait-chip').forEach(c => c.classList.remove('selected'));
+
+  if (!sel || sel === 'custom' || !COURSE_PROFILES[sel]) {
+    infoBox.style.display = 'none';
+    emptyMsg.style.display = sel === 'custom' ? 'block' : (!sel ? 'block' : 'none');
+    if (sel === 'custom') emptyMsg.textContent = 'Custom event — toggle the course traits manually below.';
+    return;
+  }
+
+  const profile = COURSE_PROFILES[sel];
+
+  // Hide empty msg, show info
+  emptyMsg.style.display = 'none';
+  infoBox.style.display = 'block';
+  document.getElementById('courseInfoName').textContent = `${profile.name} — ${profile.location}`;
+  document.getElementById('courseInfoDetails').textContent = `${profile.yards} yards, Par ${profile.par}  •  ${profile.notes}`;
+
+  // Select matching traits
+  profile.traits.forEach(trait => {
+    selectedTraits.add(trait);
+    const chip = document.querySelector(`.trait-chip[data-trait="${trait}"]`);
+    if (chip) chip.classList.add('selected');
+  });
+}
+
+// ===== COURSE TRAITS =====
+const selectedTraits = new Set();
+document.querySelectorAll('.trait-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const trait = chip.dataset.trait;
+    if (selectedTraits.has(trait)) {
+      selectedTraits.delete(trait);
+      chip.classList.remove('selected');
+    } else {
+      selectedTraits.add(trait);
+      chip.classList.add('selected');
+    }
+  });
+});
+
+// ===== PLAYER LOOKUP =====
+
+// ===== ODDS CONVERSION =====
+function oddsToImpliedProb(odds) {
+  let o = String(odds).replace('−', '-').trim();
+  if (o.endsWith('%')) return parseFloat(o) / 100;
+  if (o.endsWith('¢')) return parseFloat(o) / 100;
+  if (o.startsWith('0.')) return parseFloat(o);
+  const num = parseInt(o);
+  if (isNaN(num)) return 0;
+  if (num > 0) return 100 / (num + 100);
+  if (num < 0) return Math.abs(num) / (Math.abs(num) + 100);
+  return 0;
+}
+
+function impliedProbToAmerican(prob) {
+  if (prob <= 0 || prob >= 1) return 'N/A';
+  if (prob >= 0.5) return '-' + Math.round(prob / (1 - prob) * 100);
+  return '+' + Math.round((1 - prob) / prob * 100);
+}
+
+// ===== COURSE FIT ADJUSTMENT =====
+
+// ===== RECENT FORM SYSTEM =====
+// Signature / elevated events get higher weight
+const EVENT_TIERS = {
+  // Majors (weight 1.5)
+  'masters': 1.5, 'masters tournament': 1.5, 'pga championship': 1.5, 'us open': 1.5, 'u.s. open': 1.5, 'open championship': 1.5, 'the open': 1.5,
+  // Signature / Elevated (weight 1.3)
+  'the players': 1.3, 'players championship': 1.3, 'genesis invitational': 1.3, 'arnold palmer invitational': 1.3,
+  'memorial tournament': 1.3, 'memorial': 1.3, 'wm phoenix open': 1.3, 'rbc heritage': 1.3,
+  'at&t pebble beach': 1.25, 'pebble beach': 1.25, 'wells fargo': 1.2, 'travelers championship': 1.2,
+  'fedex st. jude': 1.3, 'bmw championship': 1.3, 'tour championship': 1.4,
+  'sentry': 1.25, 'hero world challenge': 1.15
+};
+
+window._recentForm = {};
+
+function parseRecentForm() {
+  const raw = document.getElementById('recentFormPaste').value;
+  if (!raw.trim()) return;
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const formData = {}; // { playerName: [ {finish, event, weight, recency} ] }
+
+  lines.forEach((line, lineIdx) => {
+    // Parse: "Player Name, Finish, Event Name"
+    const parts = line.split(',').map(s => s.trim());
+    if (parts.length < 2) return;
+
+    const playerRaw = parts[0];
+    const finishRaw = parts[1].toUpperCase();
+    const eventName = parts.length >= 3 ? parts.slice(2).join(',').trim() : 'Unknown Event';
+
+    // Parse finish position
+    let finish;
+    if (finishRaw === 'MC' || finishRaw === 'CUT') finish = 'MC';
+    else if (finishRaw === 'WD' || finishRaw === 'W/D') finish = 'WD';
+    else if (finishRaw === 'DQ') finish = 'DQ';
+    else {
+      finish = parseInt(finishRaw.replace(/[^0-9]/g, ''));
+      if (isNaN(finish)) return;
+    }
+
+    // Find event tier weight
+    const eventLow = eventName.toLowerCase();
+    let eventWeight = 1.0;
+    for (const [key, w] of Object.entries(EVENT_TIERS)) {
+      if (eventLow.includes(key)) { eventWeight = w; break; }
+    }
+
+    // Recency weight: first line = most recent (weight 1.0), older = less
+    // lineIdx 0 = most recent, lineIdx N = oldest
+    const recencyWeight = 1.0 / (1 + lineIdx * 0.15);
+
+    const player = findPlayer(playerRaw);
+    const name = player ? player.name : playerRaw;
+
+    if (!formData[name]) formData[name] = [];
+    formData[name].push({ finish, event: eventName, eventWeight, recencyWeight });
+  });
+
+  window._recentForm = formData;
+
+  // Show preview
+  const preview = document.getElementById('formPreview');
+  preview.style.display = 'block';
+  const playerCount = Object.keys(formData).length;
+  const resultCount = Object.values(formData).reduce((s, arr) => s + arr.length, 0);
+
+  let html = `<span style="color:var(--accent);">✓ Parsed ${resultCount} results for ${playerCount} players</span>\n\n`;
+
+  for (const [name, results] of Object.entries(formData)) {
+    const adj = getFormAdjustment(name);
+    const adjColor = adj > 0 ? 'var(--accent)' : adj < 0 ? 'var(--red)' : 'var(--text-dim)';
+    const adjLabel = adj > 0 ? '🔥 Hot' : adj < -0.08 ? '🥶 Cold' : adj < 0 ? '📉 Cooling' : '➡️ Neutral';
+    html += `<span style="color:var(--text);">${name}</span> → ${results.map(r => {
+      const f = r.finish === 'MC' ? 'MC' : r.finish === 'WD' ? 'WD' : r.finish === 'DQ' ? 'DQ' : 'T' + r.finish;
+      return `${f} (${r.event.substring(0, 20)}${r.event.length > 20 ? '..' : ''})`;
+    }).join(', ')} <span style="color:${adjColor};">[${adjLabel} ${adj > 0 ? '+' : ''}${(adj * 100).toFixed(0)}%]</span>\n`;
+  }
+  preview.innerHTML = html;
+}
+
+function autoFillRecentForm() {
+  // 2026 PGA Tour season results (most recent first)
+  // Sources: pgatour.com leaderboards, search results
+  // Format: Player, Finish, Event (most recent events listed first)
+  const seasonData = `Collin Morikawa, 1, AT&T Pebble Beach Pro-Am
+Min Woo Lee, 2, AT&T Pebble Beach Pro-Am
+Sepp Straka, 2, AT&T Pebble Beach Pro-Am
+Scottie Scheffler, 4, AT&T Pebble Beach Pro-Am
+Tommy Fleetwood, 4, AT&T Pebble Beach Pro-Am
+Sam Burns, 6, AT&T Pebble Beach Pro-Am
+Justin Rose, 1, Farmers Insurance Open
+Pierceson Coody, 2, Farmers Insurance Open
+Si Woo Kim, 2, Farmers Insurance Open
+Ryo Hisatsune, 2, Farmers Insurance Open
+Jake Knapp, 5, Farmers Insurance Open
+Sahith Theegala, 7, Farmers Insurance Open
+Collin Morikawa, 8, Farmers Insurance Open
+Maverick McNealy, 10, Farmers Insurance Open
+Hideki Matsuyama, 11, Farmers Insurance Open
+Scottie Scheffler, 1, The American Express
+Ryan Gerard, 2, The American Express
+Jason Day, 2, The American Express
+Matt McCarty, 2, The American Express
+Chris Gotterup, 1, WM Phoenix Open
+Sahith Theegala, 2, WM Phoenix Open
+Hideki Matsuyama, 3, WM Phoenix Open
+Wyndham Clark, 5, WM Phoenix Open
+Sam Burns, 8, WM Phoenix Open
+Ludvig Aberg, 3, The Sentry
+Collin Morikawa, 5, The Sentry
+Scottie Scheffler, 2, The Sentry
+Xander Schauffele, 4, The Sentry
+Patrick Cantlay, 6, The Sentry
+Hideki Matsuyama, 1, Sony Open
+Tom Kim, 3, Sony Open
+Si Woo Kim, 5, Sony Open
+Russell Henley, 4, Sony Open
+Sungjae Im, 6, Sony Open
+Corey Conners, 8, Sony Open
+Brian Harman, 10, Sony Open`;
+
+  document.getElementById('recentFormPaste').value = seasonData;
+  parseRecentForm();
+}
+
+function getFormAdjustment(playerName) {
+  const results = window._recentForm[playerName];
+  if (!results || results.length === 0) return 0;
+
+  let totalScore = 0;
+  let totalWeight = 0;
+
+  for (const r of results) {
+    const w = r.eventWeight * r.recencyWeight;
+    let score;
+
+    if (r.finish === 'MC' || r.finish === 'DQ') {
+      score = -0.35; // Missed cut is bad
+    } else if (r.finish === 'WD') {
+      score = -0.15; // WD is mild negative (could be injury or precaution)
+    } else {
+      // Convert finish to a score: 1st = +0.5, 5th = +0.3, 10th = +0.15, 20th = +0.05, 30th = 0, 50th+ = negative
+      if (r.finish === 1) score = 0.50;
+      else if (r.finish <= 3) score = 0.35;
+      else if (r.finish <= 5) score = 0.25;
+      else if (r.finish <= 10) score = 0.15;
+      else if (r.finish <= 20) score = 0.05;
+      else if (r.finish <= 30) score = -0.02;
+      else if (r.finish <= 50) score = -0.10;
+      else score = -0.20;
+    }
+
+    totalScore += score * w;
+    totalWeight += w;
+  }
+
+  if (totalWeight === 0) return 0;
+
+  // Normalize and cap the adjustment at ±20%
+  const rawAdj = totalScore / totalWeight;
+  return Math.max(-0.20, Math.min(0.20, rawAdj));
+}
+
+// ===== COURSE HISTORY BOOST =====
+function getCourseHistoryBoost(playerName) {
+  const selVal = document.getElementById('tournamentSelect')?.value;
+  if (!selVal || selVal === 'custom') return 0;
+
+  const profile = COURSE_PROFILES[selVal];
+  if (!profile || !profile.history) return 0;
+
+  const history = profile.history[playerName];
+  if (!history || history.length === 0) return 0;
+
+  // Convert past finishes to a boost score
+  // More finishes + better finishes = bigger boost
+  let score = 0;
+  for (const finish of history) {
+    if (finish === 1) score += 0.18;
+    else if (finish <= 3) score += 0.12;
+    else if (finish <= 5) score += 0.08;
+    else if (finish <= 10) score += 0.04;
+    else if (finish <= 20) score += 0.01;
+    else score += -0.01;
+  }
+
+  // Average and cap — more appearances also adds small consistency bonus
+  const avgScore = score / history.length;
+  const consistencyBonus = Math.min(0.03, history.length * 0.008); // max +3% for 4+ appearances
+
+  return Math.max(-0.05, Math.min(0.15, avgScore + consistencyBonus));
+}
+
+// ===== COURSE FIT MULTIPLIER =====
+function getCourseFitMultiplier(player) {
+  if (selectedTraits.size === 0) return 1.0;
+  const [total, ott, app, atg, putt] = player.sg;
+  let bonus = 0;
+  const traitCount = selectedTraits.size;
+
+  if (selectedTraits.has('distance')) bonus += (ott / 0.8) * 0.08;
+  if (selectedTraits.has('accuracy')) bonus += ((app + atg) / 1.0) * 0.06;
+  if (selectedTraits.has('approach')) bonus += (app / 1.0) * 0.10;
+  if (selectedTraits.has('shortgame')) bonus += (atg / 0.35) * 0.07;
+  if (selectedTraits.has('putting')) bonus += (putt / 0.35) * 0.06;
+  if (selectedTraits.has('links')) bonus += ((ott + app) / 1.5) * 0.05;
+  if (selectedTraits.has('firmfast')) bonus += (app / 1.0) * 0.06;
+  if (selectedTraits.has('par5scoring')) bonus += (ott / 0.8) * 0.06;
+
+  return 1 + Math.max(-0.15, Math.min(0.20, bonus / Math.max(1, traitCount)));
+}
+
+// ===== COMPOSITE SKILL → TRUE PROBABILITY =====
+function computeTrueProb(player, market, fieldSize = 70) {
+  const [total, ott, app, atg, putt] = player.sg;
+  const composite = (app * 0.35) + (ott * 0.25) + (atg * 0.20) + (putt * 0.10) + (total * 0.10);
+
+  // Course fit adjustment (from traits)
+  const fitMult = getCourseFitMultiplier(player);
+
+  // Recent form adjustment (+/- up to 20%)
+  const formAdj = getFormAdjustment(player.name);
+
+  // Course history boost (+/- up to 15%)
+  const historyBoost = getCourseHistoryBoost(player.name);
+
+  // Combined adjustment: fit × (1 + form + history)
+  const adjusted = composite * fitMult * (1 + formAdj + historyBoost);
+
+  const topN = { 'Win': 1, 'Top5': 5, 'Top10': 10, 'Top20': 20 };
+  const n = topN[market] || 1;
+
+  const k = 2.8;
+  const baseWinProb = Math.exp(k * adjusted) / (fieldSize * 0.85);
+
+  let prob;
+  if (market === 'Win') {
+    prob = Math.min(0.45, Math.max(0.001, baseWinProb));
+  } else {
+    const rawTopN = 1 - Math.pow(1 - Math.min(0.4, baseWinProb * 1.5), n * 0.85);
+    prob = Math.min(0.90, Math.max(0.005, rawTopN));
+  }
+  return prob;
+}
+
+// ===== KELLY CRITERION =====
+function kellyFraction(trueProb, impliedProb, riskLevel) {
+  const fractions = { conservative: 0.25, moderate: 0.5, aggressive: 0.75 };
+  const f = fractions[riskLevel] || 0.5;
+  if (trueProb <= impliedProb) return 0;
+  const b = (1 / impliedProb) - 1;
+  const kelly = (b * trueProb - (1 - trueProb)) / b;
+  return Math.max(0, kelly * f);
+}
+
+function findPlayer(name) {
+  const clean = name.trim().toLowerCase();
+  // Exact match
+  let p = PLAYERS.find(p => p.name.toLowerCase() === clean);
+  if (p) return p;
+  // Last name match
+  const lastName = clean.split(' ').pop();
+  p = PLAYERS.find(p => p.name.toLowerCase().split(' ').pop() === lastName);
+  if (p) return p;
+  // Partial
+  p = PLAYERS.find(p => p.name.toLowerCase().includes(clean) || clean.includes(p.name.toLowerCase().split(' ').pop()));
+  if (p) return p;
+  // Initials: "S. Scheffler" → "Scheffler"
+  const initialsMatch = clean.match(/^[a-z]\.\s*(.+)/);
+  if (initialsMatch) {
+    const rest = initialsMatch[1];
+    p = PLAYERS.find(p => p.name.toLowerCase().includes(rest));
+    if (p) return p;
+  }
+  // J.J., J.T. etc
+  const dotName = clean.replace(/\./g, '');
+  p = PLAYERS.find(pp => pp.name.toLowerCase().replace(/\./g, '').includes(dotName));
+  if (p) return p;
+  return null;
+}
+
+// ===== MAIN ANALYSIS (MULTI-BOOK) =====
+function analyzePortfolio() {
+  // Collect all bets from all books
+  const allBookBets = {};
+  Object.entries(bookData).forEach(([book, bets]) => {
+    bets.forEach(bet => {
+      const player = findPlayer(bet.player);
+      const key = (player ? player.name : bet.player) + '|' + bet.market;
+      if (!allBookBets[key]) allBookBets[key] = { player: player ? player.name : bet.player, market: bet.market, books: {} };
+      allBookBets[key].books[book] = bet.odds;
+    });
+  });
+
+  // If no book data, check if there's legacy textarea data
+  if (Object.keys(allBookBets).length === 0) {
+    // Try parsing DK textarea as fallback
+    const dkRaw = document.getElementById('dkPaste').value;
+    if (dkRaw.trim()) {
+      parseBook('dk');
+      // Re-collect
+      bookData.dk.forEach(bet => {
+        const player = findPlayer(bet.player);
+        const key = (player ? player.name : bet.player) + '|' + bet.market;
+        if (!allBookBets[key]) allBookBets[key] = { player: player ? player.name : bet.player, market: bet.market, books: {} };
+        allBookBets[key].books.dk = bet.odds;
+      });
+    }
+  }
+
+  if (Object.keys(allBookBets).length === 0) {
+    alert('No bets found. Please paste odds from at least one sportsbook.');
+    return;
+  }
+
+  const bankroll = parseFloat(document.getElementById('bankroll').value) || 1000;
+  const riskLevel = document.getElementById('riskLevel').value;
+  const selVal = document.getElementById('tournamentSelect').value;
+  let tournamentName;
+  if (selVal && selVal !== 'custom') {
+    const opt = document.querySelector(`#tournamentSelect option[value="${selVal}"]`);
+    tournamentName = opt ? opt.textContent.split('—')[0].trim() : 'Tournament';
+  } else {
+    tournamentName = document.getElementById('tournamentName').value || 'Tournament';
+  }
+
+  const results = [];
+  const fieldPlayers = new Set(Object.values(allBookBets).map(b => b.player));
+  const fieldSize = fieldPlayers.size;
+
+  for (const [key, entry] of Object.entries(allBookBets)) {
+    const player = findPlayer(entry.player);
+    const sg = player ? player.sg : [0.50, 0.15, 0.15, 0.10, 0.10];
+    const tier = player ? player.tier : 'Unknown';
+    const matchedName = player ? player.name : entry.player;
+
+    // Find best odds across books (lowest implied prob = best for bettor)
+    let bestBook = null, bestOdds = null, bestImplied = 1;
+    const bookOdds = {};
+    for (const [book, odds] of Object.entries(entry.books)) {
+      const implied = oddsToImpliedProb(odds);
+      bookOdds[book] = { odds, implied };
+      if (implied > 0 && implied < bestImplied) {
+        bestImplied = implied;
+        bestOdds = odds;
+        bestBook = book;
+      }
+    }
+
+    if (bestImplied <= 0 || bestImplied >= 1) continue;
+
+    // Determine if this is a "No" bet (Kalshi)
+    const isNoBet = entry.market.endsWith(' No');
+    const baseMarket = isNoBet ? entry.market.replace(' No', '') : entry.market;
+
+    let trueProb = computeTrueProb(
+      player || { name: entry.player, sg: sg },
+      baseMarket,
+      Math.max(30, fieldSize)
+    );
+
+    // For No bets, invert: P(No) = 1 - P(Yes)
+    if (isNoBet) trueProb = 1 - trueProb;
+
+    const edge = trueProb - bestImplied;
+    const ev = edge / bestImplied;
+    const kelly = kellyFraction(trueProb, bestImplied, riskLevel);
+    const betSize = kelly * bankroll;
+
+    results.push({
+      player: matchedName,
+      market: entry.market,
+      odds: bestOdds,
+      bestBook,
+      bookOdds,
+      impliedProb: bestImplied,
+      trueProb,
+      edge,
+      ev,
+      kelly,
+      betSize,
+      tier,
+      sg,
+      matched: !!player
+    });
+  }
+
+  results.sort((a, b) => b.ev - a.ev);
+  const portfolio = results.filter(r => r.ev > 0.02);
+
+  // Scale total to max 50% of bankroll
+  const maxBudget = bankroll * 0.5;
+  let totalBets = portfolio.reduce((s, r) => s + r.betSize, 0);
+  if (totalBets > maxBudget) {
+    const scale = maxBudget / totalBets;
+    portfolio.forEach(r => r.betSize *= scale);
+  }
+
+  // Remove bets under $1 and redistribute budget proportionally (by Kelly weight)
+  const minBet = 1.00;
+  let survivors = portfolio.filter(r => r.betSize >= minBet);
+
+  if (survivors.length === 0 && portfolio.length > 0) {
+    // Nothing survives — concentrate budget into top bets by EV, sized by their Kelly fractions
+    const budget = Math.min(portfolio.reduce((s, r) => s + r.betSize, 0), maxBudget);
+    const maxN = Math.floor(budget / minBet);
+    if (maxN > 0) {
+      // Take top N by EV, keep their relative Kelly proportions
+      survivors = portfolio.slice(0, maxN);
+      const kellyTotal = survivors.reduce((s, r) => s + r.kelly, 0);
+      if (kellyTotal > 0) {
+        survivors.forEach(r => r.betSize = Math.max(minBet, (r.kelly / kellyTotal) * budget));
+        // Re-scale to fit budget exactly
+        const newTotal = survivors.reduce((s, r) => s + r.betSize, 0);
+        if (newTotal > budget) {
+          const adj = budget / newTotal;
+          survivors.forEach(r => r.betSize *= adj);
+        }
+        // Drop any that fell below $1 after re-scale
+        survivors = survivors.filter(r => r.betSize >= minBet);
+      } else {
+        // All kelly fractions are tiny/equal — distribute by EV rank
+        survivors.forEach((r, i) => {
+          const weight = (maxN - i); // higher EV = more weight
+          r._w = weight;
+        });
+        const wTotal = survivors.reduce((s, r) => s + r._w, 0);
+        survivors.forEach(r => { r.betSize = (r._w / wTotal) * budget; delete r._w; });
+        survivors = survivors.filter(r => r.betSize >= minBet);
+      }
+    }
+  } else if (survivors.length < portfolio.length && survivors.length > 0) {
+    // Some got filtered — redistribute lost budget proportionally by Kelly
+    const targetTotal = Math.min(portfolio.reduce((s, r) => s + r.betSize, 0), maxBudget);
+    const kellyTotal = survivors.reduce((s, r) => s + r.kelly, 0);
+    if (kellyTotal > 0) {
+      survivors.forEach(r => r.betSize = Math.max(minBet, (r.kelly / kellyTotal) * targetTotal));
+      const newTotal = survivors.reduce((s, r) => s + r.betSize, 0);
+      if (newTotal > targetTotal) {
+        const adj = targetTotal / newTotal;
+        survivors.forEach(r => r.betSize *= adj);
+      }
+      survivors = survivors.filter(r => r.betSize >= minBet);
+    }
+  }
+
+  const finalPortfolio = survivors;
+
+  window._lastResults = results;
+  window._lastPortfolio = finalPortfolio;
+
+  // Auto-populate odds compare tab
+  autoPopulateCompare(results);
+
+  renderResults(results, finalPortfolio, bankroll, tournamentName);
+
+  // Switch to results tab
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-tab="results"]').classList.add('active');
+  document.getElementById('tab-results').classList.add('active');
+}
+
+function autoPopulateCompare(results) {
+  // Clear existing compare rows
+  const container = document.getElementById('compareEntries');
+  const header = container.firstElementChild;
+  container.innerHTML = '';
+  container.appendChild(header);
+  compareRows = 0;
+
+  // Add rows for multi-book bets
+  const multiBookBets = results.filter(r => Object.keys(r.bookOdds).length > 1);
+  multiBookBets.slice(0, 30).forEach(r => {
+    addCompareRow(
+      `${r.player} ${r.market}`,
+      r.bookOdds.dk?.odds || '',
+      r.bookOdds.fd?.odds || '',
+      r.bookOdds.kalshi?.odds || ''
+    );
+  });
+
+  // If we populated, auto-analyze
+  if (multiBookBets.length > 0) {
+    setTimeout(() => analyzeComparison(), 100);
+  }
+}
+
+// ===== RENDER RESULTS =====
+function renderResults(results, portfolio, bankroll, tournamentName) {
+  const container = document.getElementById('resultsContent');
+  const totalStake = portfolio.reduce((s, r) => s + r.betSize, 0);
+  const avgEV = portfolio.length > 0 ? portfolio.reduce((s, r) => s + r.ev, 0) / portfolio.length : 0;
+  const expectedProfit = portfolio.reduce((s, r) => s + (r.betSize * r.ev), 0);
+  const uniquePlayers = new Set(portfolio.map(r => r.player)).size;
+  const bestBet = portfolio[0] || null;
+  const strongBets = portfolio.filter(r => r.ev > 0.10);
+  const longshotBets = portfolio.filter(r => r.impliedProb < 0.05);
+  const favoriteBets = portfolio.filter(r => r.impliedProb > 0.15);
+
+  // Get course profile info
+  const selVal = document.getElementById('tournamentSelect').value;
+  const courseProfile = (typeof COURSE_PROFILES !== 'undefined' && selVal) ? COURSE_PROFILES[selVal] : null;
+  const activeTraits = [...selectedTraits];
+
+  // === SECTION 1: ASSET ALLOCATION (only players with $ allocated) ===
+  // Filter out micro bets under $0.10
+  const filteredPortfolio = portfolio.filter(r => r.betSize >= 1.00);
+
+  // Recalc totals with filtered portfolio
+  const fTotalStake = filteredPortfolio.reduce((s, r) => s + r.betSize, 0);
+  const fExpectedProfit = filteredPortfolio.reduce((s, r) => s + (r.betSize * r.ev), 0);
+  const fAvgEV = filteredPortfolio.length > 0 ? filteredPortfolio.reduce((s, r) => s + r.ev, 0) / filteredPortfolio.length : 0;
+
+  // Market distribution (filtered)
+  const marketDist = {};
+  filteredPortfolio.forEach(r => { marketDist[r.market] = (marketDist[r.market] || 0) + r.betSize; });
+  const tierDist = {};
+  filteredPortfolio.forEach(r => { tierDist[r.tier] = (tierDist[r.tier] || 0) + r.betSize; });
+
+  // Compute payout for each bet
+  const withPayout = filteredPortfolio.map(r => {
+    const odds = parseInt(String(r.odds).replace('−','-'));
+    let payout = 0;
+    if (!isNaN(odds)) {
+      if (odds > 0) payout = r.betSize * (odds / 100);
+      else payout = r.betSize * (100 / Math.abs(odds));
+    }
+    return { ...r, payout };
+  });
+
+  // Build individual bet lines for the allocation section
+  const betLines = withPayout.sort((a, b) => b.betSize - a.betSize);
+  const maxBet = betLines.length > 0 ? betLines[0].betSize : 1;
+
+  // === SECTION 2: BET WRITEUPS ===
+  const betWriteups = filteredPortfolio.slice(0, 15).map(r => {
+    const player = findPlayer(r.player);
+    const sg = player ? player.sg : [0.5, 0.15, 0.15, 0.10, 0.10];
+    const isNoBet = r.market.endsWith(' No');
+
+    // Risk assessment
+    let riskLabel, riskColor, riskEmoji;
+    if (r.impliedProb > 0.25) { riskLabel = 'Safer Play'; riskColor = 'var(--accent)'; riskEmoji = '🛡️'; }
+    else if (r.impliedProb > 0.10) { riskLabel = 'Moderate Risk'; riskColor = 'var(--blue)'; riskEmoji = '⚖️'; }
+    else if (r.impliedProb > 0.04) { riskLabel = 'Higher Risk, Good Value'; riskColor = 'var(--gold)'; riskEmoji = '🎯'; }
+    else { riskLabel = 'Longshot — High Upside'; riskColor = 'var(--orange)'; riskEmoji = '🎰'; }
+
+    // Build reasoning
+    let reasoning = '';
+    if (isNoBet) {
+      reasoning = `The market is pricing ${r.player}'s chances of finishing ${r.market.replace(' No', '')} higher than the model believes. At ${(r.impliedProb*100).toFixed(0)}¢ for "No," the true miss probability is ${(r.trueProb*100).toFixed(1)}% — that's a ${(r.ev*100).toFixed(0)}% edge on the fade.`;
+    } else {
+      reasoning = `The market implies a ${(r.impliedProb*100).toFixed(1)}% chance, but the model sees ${(r.trueProb*100).toFixed(1)}% — a ${(r.ev*100).toFixed(0)}% edge. `;
+
+      // Skill breakdown
+      if (player) {
+        const strengths = [];
+        if (sg[2] >= 0.50) strengths.push('elite approach play');
+        else if (sg[2] >= 0.30) strengths.push('strong iron play');
+        if (sg[1] >= 0.50) strengths.push('serious length off the tee');
+        else if (sg[1] >= 0.30) strengths.push('above-average driving');
+        if (sg[3] >= 0.20) strengths.push('reliable short game');
+        if (sg[4] >= 0.25) strengths.push('strong putting');
+
+        if (strengths.length > 0) reasoning += `Backed by ${strengths.join(', ')}. `;
+
+        // Recent form mention
+        const formAdj = getFormAdjustment(r.player);
+        if (formAdj > 0.08) reasoning += `<span style="color:var(--accent);">🔥 Running hot</span> — recent form is boosting the model's confidence. `;
+        else if (formAdj > 0.02) reasoning += `Recent form is solid, giving a small edge bump. `;
+        else if (formAdj < -0.08) reasoning += `<span style="color:var(--red);">Coming in cold</span> — but the price already reflects that and still shows value. `;
+        else if (formAdj < -0.02) reasoning += `Form has dipped recently, but the edge persists at this price. `;
+
+        // Course history mention
+        const histBoost = getCourseHistoryBoost(r.player);
+        if (histBoost > 0.08) reasoning += `<span style="color:var(--accent);">Course horse</span> — strong track record at this venue adds conviction. `;
+        else if (histBoost > 0.03) reasoning += `Has played well here before — course history is a plus. `;
+        else if (histBoost < -0.02) reasoning += `No great history at this course, but skill profile still fits. `;
+
+        // Course fit mention
+        if (activeTraits.length > 0) {
+          const traitNames = { distance: 'length', accuracy: 'accuracy', approach: 'approach play', shortgame: 'short game', putting: 'putting', links: 'wind/links', firmfast: 'firm conditions', par5scoring: 'par 5 scoring' };
+          const boosts = [];
+          if (activeTraits.includes('approach') && sg[2] >= 0.40) boosts.push('approach play shines here');
+          if (activeTraits.includes('distance') && sg[1] >= 0.45) boosts.push('length is rewarded this week');
+          if (activeTraits.includes('putting') && sg[4] >= 0.20) boosts.push('putting matters on these greens');
+          if (activeTraits.includes('shortgame') && sg[3] >= 0.20) boosts.push('short game is key this week');
+          if (activeTraits.includes('firmfast') && sg[2] >= 0.35) boosts.push('handles firm conditions well');
+          if (boosts.length > 0) reasoning += boosts[0].charAt(0).toUpperCase() + boosts[0].slice(1) + '. ';
+        }
+      }
+
+      // Tier-based commentary
+      if (r.tier === 'Elite' || r.tier === 'Top') {
+        reasoning += `As a ${r.tier.toLowerCase()}-tier player, the floor is high even if the win doesn't come.`;
+      } else if (r.tier === 'Solid') {
+        reasoning += `Solid-tier value — these are the under-the-radar plays that move the needle.`;
+      } else if (r.tier === 'Mid') {
+        reasoning += `A deeper-field play. Higher variance, but the price is too generous to ignore.`;
+      }
+    }
+
+    return { ...r, riskLabel, riskColor, riskEmoji, reasoning };
+  });
+
+  // === SECTION 3: COURSE FIT STANDOUTS ===
+  // Find players who fit the course especially well regardless of betting value
+  const courseFitPlayers = [];
+  if (activeTraits.length > 0) {
+    const allPlayers = results.map(r => {
+      const p = findPlayer(r.player);
+      if (!p) return null;
+      const mult = getCourseFitMultiplier(p);
+      return { name: p.name, sg: p.sg, tier: p.tier, fitMult: mult, composite: (p.sg[2]*0.35 + p.sg[1]*0.25 + p.sg[3]*0.20 + p.sg[4]*0.10 + p.sg[0]*0.10) * mult };
+    }).filter(Boolean);
+
+    // Deduplicate and sort by fit-adjusted composite
+    const seen = new Set();
+    allPlayers.sort((a, b) => b.composite - a.composite);
+    for (const p of allPlayers) {
+      if (!seen.has(p.name) && courseFitPlayers.length < 6) {
+        seen.add(p.name);
+        courseFitPlayers.push(p);
+      }
+    }
+  }
+
+  container.innerHTML = `
+    <!-- SECTION 1: ASSET ALLOCATION -->
+    <div class="card" style="border-color:var(--accent); border-width:1px;">
+      <div class="card-title"><span class="icon">💰</span> Your Money — Where It's Going</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:0.75rem; margin-bottom:1.5rem;">
+        <div class="stat-box">
+          <div class="stat-value" style="color:var(--gold);">$${fTotalStake.toFixed(2)}</div>
+          <div class="stat-label">Total Staked</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" style="color:var(--accent);">$${fExpectedProfit.toFixed(2)}</div>
+          <div class="stat-label">Exp. Profit</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" style="color:var(--accent);">${(fAvgEV * 100).toFixed(1)}%</div>
+          <div class="stat-label">Avg Edge</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" style="color:var(--blue);">${filteredPortfolio.length}</div>
+          <div class="stat-label">Bets</div>
+        </div>
+      </div>
+
+      <!-- Individual bet allocation lines -->
+      <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:0.5rem; letter-spacing:0.05em;">EVERY BET — PLAYER · MARKET · ODDS · STAKE · POTENTIAL PAYOUT</div>
+      <div style="display:flex; flex-direction:column; gap:0.4rem;">
+        ${betLines.map((r, i) => {
+          const pct = (r.betSize / fTotalStake * 100);
+          const colors = ['green','gold','blue','purple','orange'];
+          return `<div style="display:grid; grid-template-columns:2fr 0.7fr 0.7fr 0.7fr 0.7fr; gap:0.5rem; align-items:center; padding:0.5rem 0.6rem; background:var(--bg-input); border-radius:6px; border-left:3px solid var(--${colors[i % 5] === 'green' ? 'accent' : colors[i % 5]});">
+            <div style="font-weight:600; font-size:0.85rem;">${r.player} <span style="color:var(--text-dim); font-weight:400; font-size:0.78rem;">${r.market}</span></div>
+            <div style="font-family:'Source Code Pro',monospace; font-size:0.8rem; color:var(--text-dim);">${r.odds}</div>
+            <div style="font-family:'Source Code Pro',monospace; font-size:0.85rem; font-weight:700; color:var(--gold);">$${r.betSize < 1 ? r.betSize.toFixed(2) : r.betSize.toFixed(2)}</div>
+            <div style="font-family:'Source Code Pro',monospace; font-size:0.8rem; color:var(--accent);">→ $${r.payout < 1 ? r.payout.toFixed(2) : r.payout.toFixed(2)}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">${r.bestBook ? bookNames[r.bestBook] : '—'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="portfolio-grid" style="margin-top:1.5rem;">
+        <div>
+          <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:0.5rem; letter-spacing:0.05em;">BY MARKET</div>
+          <div class="bar-chart">
+            ${Object.entries(marketDist).sort((a,b) => b[1]-a[1]).map(([m, amt], i) => {
+              const colors = ['green','gold','blue','purple'];
+              const pct = fTotalStake > 0 ? (amt / fTotalStake * 100) : 0;
+              return `<div class="bar-row">
+                <div class="bar-label">${m}</div>
+                <div class="bar-track"><div class="bar-fill ${colors[i % 4]}" style="width:${pct}%">${pct.toFixed(0)}%</div></div>
+                <div class="bar-amt">$${amt.toFixed(2)}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:0.5rem; letter-spacing:0.05em;">BY TIER</div>
+          <div class="bar-chart">
+            ${Object.entries(tierDist).sort((a,b) => b[1]-a[1]).map(([t, amt], i) => {
+              const colors = ['green','gold','blue','purple','orange'];
+              const pct = fTotalStake > 0 ? (amt / fTotalStake * 100) : 0;
+              return `<div class="bar-row">
+                <div class="bar-label">${t}</div>
+                <div class="bar-track"><div class="bar-fill ${colors[i % 5]}" style="width:${pct}%">${pct.toFixed(0)}%</div></div>
+                <div class="bar-amt">$${amt.toFixed(2)}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:1rem;">
+        <button class="btn btn-primary btn-sm" onclick="addPortfolioToTracker()">📝 Log All Bets</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 Export CSV</button>
+      </div>
+    </div>
+
+    <!-- SECTION 2: BET-BY-BET WRITEUPS -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📝</span> Bet Breakdown — Why Each Play</div>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        ${betWriteups.map((r, i) => `
+          <div style="padding:1rem 1.25rem; background:var(--bg-input); border:1px solid var(--border); border-radius:10px; border-left:3px solid ${r.riskColor};">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+              <div>
+                <span style="font-weight:700; font-size:0.95rem;">${r.player}</span>
+                <span style="font-size:0.8rem; color:var(--text-dim); margin-left:0.5rem;">${r.market} @ ${r.odds}</span>
+                ${r.bestBook ? `<span style="font-size:0.72rem; color:var(--text-muted); margin-left:0.5rem;">via ${bookNames[r.bestBook]}</span>` : ''}
+              </div>
+              <div style="display:flex; align-items:center; gap:0.75rem;">
+                <span style="font-size:0.75rem; color:${r.riskColor};">${r.riskEmoji} ${r.riskLabel}</span>
+                <span style="font-family:'Source Code Pro',monospace; font-size:0.85rem; font-weight:700; color:var(--gold);">$${r.betSize.toFixed(0)}</span>
+              </div>
+            </div>
+            <div style="font-size:0.82rem; color:var(--text-dim); line-height:1.65;">${r.reasoning}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- SECTION 3: COURSE FIT STANDOUTS -->
+    ${courseFitPlayers.length > 0 ? `
+    <div class="card">
+      <div class="card-title"><span class="icon">🏗️</span> Course Fit Standouts — ${courseProfile ? courseProfile.name : 'This Week'}</div>
+      ${courseProfile ? `<div style="font-size:0.82rem; color:var(--text-dim); line-height:1.6; margin-bottom:1rem;">${courseProfile.notes}</div>` : ''}
+      <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+        Active traits: ${activeTraits.map(t => {
+          const labels = { distance: '🏋️ Length', accuracy: '🎯 Accuracy', approach: '📐 Approach', shortgame: '⛳ Short Game', putting: '🥏 Putting', links: '💨 Links/Wind', firmfast: '🔥 Firm & Fast', par5scoring: '🦅 Par 5s' };
+          return labels[t] || t;
+        }).join(' · ')}
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1rem;">
+        ${courseFitPlayers.map((p, i) => {
+          const strengths = [];
+          if (p.sg[2] >= 0.50) strengths.push('Elite iron play');
+          else if (p.sg[2] >= 0.30) strengths.push('Strong approach');
+          if (p.sg[1] >= 0.50) strengths.push('Bombs it off the tee');
+          else if (p.sg[1] >= 0.30) strengths.push('Good length');
+          if (p.sg[3] >= 0.20) strengths.push('Reliable around greens');
+          if (p.sg[4] >= 0.25) strengths.push('Pure putter');
+          if (p.sg[0] >= 1.5) strengths.push('All-around elite');
+
+          // Why this course
+          const whyHere = [];
+          if (activeTraits.includes('approach') && p.sg[2] >= 0.40) whyHere.push('approach play is the #1 separator here');
+          if (activeTraits.includes('distance') && p.sg[1] >= 0.45) whyHere.push('length is rewarded off every tee');
+          if (activeTraits.includes('firmfast') && p.sg[2] >= 0.35) whyHere.push('thrives on firm, fast conditions');
+          if (activeTraits.includes('shortgame') && p.sg[3] >= 0.20) whyHere.push('short game separates contenders here');
+          if (activeTraits.includes('putting') && p.sg[4] >= 0.20) whyHere.push('putting premium plays to his strengths');
+          if (activeTraits.includes('accuracy') && (p.sg[2] + p.sg[3]) >= 0.60) whyHere.push('accuracy-first game is perfect for this layout');
+          if (activeTraits.includes('links') && (p.sg[1] + p.sg[2]) >= 0.70) whyHere.push('handles wind and open layouts');
+
+          return `<div style="padding:1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <span style="font-weight:700;">${i+1}. ${p.name}</span>
+              <span class="chip chip-${p.tier === 'Elite' ? 'gold' : p.tier === 'Top' ? 'green' : 'blue'}">${p.tier}</span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.6;">
+              ${strengths.length > 0 ? strengths.join(' · ') + '.' : ''}<br>
+              ${whyHere.length > 0 ? '<span style="color:var(--accent);">Why here:</span> ' + whyHere[0].charAt(0).toUpperCase() + whyHere[0].slice(1) + '.' : ''}
+            </div>
+            <div style="margin-top:0.4rem; font-family:'Source Code Pro',monospace; font-size:0.72rem; color:var(--text-muted);">
+              SG: ${p.sg[0].toFixed(2)} Total · ${p.sg[2].toFixed(2)} APP · ${p.sg[1].toFixed(2)} OTT · ${p.sg[4].toFixed(2)} Putt
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- SECTION 4: FULL EV TABLE -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> All Value Bets <span class="chip chip-green" style="margin-left:0.5rem;">${portfolio.length} +EV</span></div>
+
+      <div class="filter-bar">
+        <label>Filter:</label>
+        <span class="filter-pill active" data-filter="all" onclick="filterPortfolio('all')">All</span>
+        <span class="filter-pill" data-filter="Win" onclick="filterPortfolio('Win')">Win</span>
+        <span class="filter-pill" data-filter="Top5" onclick="filterPortfolio('Top5')">Top 5</span>
+        <span class="filter-pill" data-filter="Top10" onclick="filterPortfolio('Top10')">Top 10</span>
+        <span class="filter-pill" data-filter="Top20" onclick="filterPortfolio('Top20')">Top 20</span>
+        <span style="margin-left:auto;"></span>
+        <label>Signal:</label>
+        <span class="filter-pill" data-filter="strong" onclick="filterPortfolio('strong')">🔥 Strong</span>
+        <span class="filter-pill" data-filter="longshot" onclick="filterPortfolio('longshot')">🎰 Longshots</span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="results-table" id="portfolioTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sortable" data-sort="player" onclick="sortPortfolio('player')">Player</th>
+              <th>Tier</th>
+              <th class="sortable" data-sort="market" onclick="sortPortfolio('market')">Market</th>
+              <th>Book</th>
+              <th>Odds</th>
+              <th class="sortable" data-sort="impliedProb" onclick="sortPortfolio('impliedProb')">Implied %</th>
+              <th class="sortable" data-sort="trueProb" onclick="sortPortfolio('trueProb')">True %</th>
+              <th class="sortable sort-desc" data-sort="ev" onclick="sortPortfolio('ev')">Edge</th>
+              <th class="sortable" data-sort="betSize" onclick="sortPortfolio('betSize')">Bet Size</th>
+            </tr>
+          </thead>
+          <tbody id="portfolioBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Full Field (collapsed by default) -->
+    <div class="card">
+      <div class="card-title" style="cursor:pointer;" onclick="this.parentElement.querySelector('#fieldTableWrap').style.display = this.parentElement.querySelector('#fieldTableWrap').style.display === 'none' ? 'block' : 'none'; this.querySelector('.toggle-arrow').textContent = this.parentElement.querySelector('#fieldTableWrap').style.display === 'none' ? '▶' : '▼';">
+        <span class="icon">📊</span> Full Field Analysis <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem;">(${results.length} bets — click to expand)</span>
+        <span class="toggle-arrow" style="margin-left:auto; font-size:0.8rem; color:var(--text-muted);">▶</span>
+      </div>
+      <div id="fieldTableWrap" style="display:none;">
+        <div class="filter-bar">
+          <label>Market:</label>
+          <select id="fieldMarketFilter" onchange="filterField()" style="min-width:90px;">
+            <option value="all">All</option>
+            <option value="Win">Win</option>
+            <option value="Top5">Top 5</option>
+            <option value="Top10">Top 10</option>
+            <option value="Top20">Top 20</option>
+            <option value="no">All No Bets</option>
+          </select>
+          <label style="margin-left:1rem;">Search:</label>
+          <input type="text" id="fieldSearch" oninput="filterField()" placeholder="Player name..." style="max-width:200px; padding:0.4rem 0.6rem; font-size:0.8rem;">
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="results-table" id="fieldTable">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="player" onclick="sortField('player')">Player</th>
+                <th class="sortable" data-sort="market" onclick="sortField('market')">Market</th>
+                <th>Odds</th>
+                <th class="sortable" data-sort="impliedProb" onclick="sortField('impliedProb')">Implied %</th>
+                <th class="sortable" data-sort="trueProb" onclick="sortField('trueProb')">True %</th>
+                <th class="sortable sort-desc" data-sort="ev" onclick="sortField('ev')">Edge</th>
+                <th>Signal</th>
+              </tr>
+            </thead>
+            <tbody id="fieldBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Store course profiles reference for the renderer
+  window._courseProfiles = typeof COURSE_PROFILES !== 'undefined' ? COURSE_PROFILES : {};
+
+  // Render tables
+  window._portfolioSort = { key: 'ev', dir: 'desc' };
+  window._fieldSort = { key: 'ev', dir: 'desc' };
+  renderPortfolioTable(portfolio);
+  renderFieldTable(results);
+}
+
+// ===== SORTABLE PORTFOLIO TABLE =====
+function renderPortfolioTable(data) {
+  const body = document.getElementById('portfolioBody');
+  if (!body) return;
+  body.innerHTML = data.map((r, i) => `
+    <tr>
+      <td style="color:var(--text-muted);">${i + 1}</td>
+      <td class="player-name">${r.player} ${!r.matched ? '<span style="color:var(--gold);font-size:0.65rem;">⚠</span>' : ''}</td>
+      <td><span class="chip chip-${r.tier === 'Elite' ? 'gold' : r.tier === 'Top' ? 'green' : r.tier === 'Solid' ? 'blue' : 'purple'}">${r.tier}</span></td>
+      <td>${r.market}</td>
+      <td style="font-size:0.75rem; color:var(--text-dim);">${r.bestBook ? bookNames[r.bestBook] : '—'}${r.bookOdds && Object.keys(r.bookOdds).length > 1 ? ' <span style="color:var(--accent);font-size:0.65rem;">★</span>' : ''}</td>
+      <td>${r.odds}</td>
+      <td>${(r.impliedProb * 100).toFixed(1)}%</td>
+      <td class="positive">${(r.trueProb * 100).toFixed(1)}%</td>
+      <td class="positive" style="font-weight:600;">+${(r.ev * 100).toFixed(0)}%</td>
+      <td style="color:var(--gold); font-weight:600;">$${r.betSize.toFixed(0)}</td>
+    </tr>
+  `).join('');
+}
+
+function sortPortfolio(key) {
+  const sort = window._portfolioSort;
+  if (sort.key === key) { sort.dir = sort.dir === 'desc' ? 'asc' : 'desc'; }
+  else { sort.key = key; sort.dir = 'desc'; }
+
+  // Update header indicators
+  document.querySelectorAll('#portfolioTable th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === key) th.classList.add(sort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+
+  let data = [...window._lastPortfolio];
+  data.sort((a, b) => {
+    let va = a[key], vb = b[key];
+    if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    if (va < vb) return sort.dir === 'asc' ? -1 : 1;
+    if (va > vb) return sort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Apply active filter
+  const activeFilter = document.querySelector('.filter-pill.active');
+  if (activeFilter && activeFilter.dataset.filter !== 'all') {
+    data = applyPortfolioFilter(data, activeFilter.dataset.filter);
+  }
+
+  renderPortfolioTable(data);
+}
+
+function filterPortfolio(filter) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.filter-pill[data-filter="${filter}"]`).classList.add('active');
+
+  let data = [...window._lastPortfolio];
+  data = applyPortfolioFilter(data, filter);
+  renderPortfolioTable(data);
+}
+
+function applyPortfolioFilter(data, filter) {
+  if (filter === 'all') return data;
+  if (filter === 'strong') return data.filter(r => r.ev > 0.10);
+  if (filter === 'longshot') return data.filter(r => r.impliedProb < 0.05);
+  return data.filter(r => r.market === filter);
+}
+
+// ===== SORTABLE FIELD TABLE =====
+function renderFieldTable(data) {
+  const body = document.getElementById('fieldBody');
+  const count = document.getElementById('fieldCount');
+  if (!body) return;
+  body.innerHTML = data.map(r => `
+    <tr>
+      <td class="player-name">${r.player}</td>
+      <td><span class="chip chip-${r.tier === 'Elite' ? 'gold' : r.tier === 'Top' ? 'green' : r.tier === 'Solid' ? 'blue' : 'purple'}">${r.tier}</span></td>
+      <td>${r.market}</td>
+      <td>${r.odds}</td>
+      <td>${(r.impliedProb * 100).toFixed(1)}%</td>
+      <td>${(r.trueProb * 100).toFixed(1)}%</td>
+      <td class="${r.edge > 0 ? 'positive' : r.edge < -0.02 ? 'negative' : 'neutral'}">${r.edge > 0 ? '+' : ''}${(r.edge * 100).toFixed(1)}%</td>
+      <td class="${r.ev > 0 ? 'positive' : r.ev < -0.02 ? 'negative' : 'neutral'}" style="font-weight:600;">${r.ev > 0 ? '+' : ''}${(r.ev * 100).toFixed(0)}%</td>
+      <td>${r.ev > 0.10 ? '<span class="chip chip-green">STRONG</span>' : r.ev > 0.02 ? '<span class="chip chip-blue">VALUE</span>' : r.ev > -0.02 ? '<span class="chip chip-purple">FAIR</span>' : '<span class="chip chip-red">AVOID</span>'}</td>
+    </tr>
+  `).join('');
+  if (count) count.textContent = `Showing ${data.length} of ${window._lastResults.length} bets`;
+}
+
+function sortField(key) {
+  const sort = window._fieldSort;
+  if (sort.key === key) { sort.dir = sort.dir === 'desc' ? 'asc' : 'desc'; }
+  else { sort.key = key; sort.dir = 'desc'; }
+
+  document.querySelectorAll('#fieldTable th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === key) th.classList.add(sort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+
+  let data = [...window._lastResults];
+  data.sort((a, b) => {
+    let va = a[key], vb = b[key];
+    if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    if (va < vb) return sort.dir === 'asc' ? -1 : 1;
+    if (va > vb) return sort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  data = applyFieldFilters(data);
+  renderFieldTable(data);
+}
+
+function filterField() {
+  let data = [...window._lastResults];
+  // Re-sort with current sort
+  const sort = window._fieldSort;
+  data.sort((a, b) => {
+    let va = a[sort.key], vb = b[sort.key];
+    if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    if (va < vb) return sort.dir === 'asc' ? -1 : 1;
+    if (va > vb) return sort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  data = applyFieldFilters(data);
+  renderFieldTable(data);
+}
+
+function applyFieldFilters(data) {
+  const market = document.getElementById('fieldMarketFilter')?.value || 'all';
+  const search = (document.getElementById('fieldSearch')?.value || '').toLowerCase();
+
+  if (market !== 'all') {
+    if (market === 'no') data = data.filter(r => r.market.endsWith(' No'));
+    else data = data.filter(r => r.market === market);
+  }
+  if (search) data = data.filter(r => r.player.toLowerCase().includes(search));
+
+  return data;
+}
+
+// ===== EXPORT CSV =====
+function exportCSV() {
+  if (!window._lastPortfolio) return;
+  const rows = [['Player','Market','Odds','Implied%','True%','Edge%','EV%','BetSize']];
+  window._lastPortfolio.forEach(r => {
+    rows.push([r.player, r.market, r.odds, (r.impliedProb*100).toFixed(1), (r.trueProb*100).toFixed(1), (r.edge*100).toFixed(1), (r.ev*100).toFixed(0), r.betSize.toFixed(0)]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fairway-edge-portfolio.csv';
+  a.click();
+}
+
+// ===== BET TRACKER =====
+let trackerRows = 0;
+function addTrackerRow(player='', market='', odds='', stake='') {
+  trackerRows++;
+  const id = 'tr_' + trackerRows;
+  const container = document.getElementById('trackerEntries');
+  const div = document.createElement('div');
+  div.className = 'tracker-entry';
+  div.id = id;
+  div.innerHTML = `
+    <input type="text" placeholder="Player / Market" value="${player ? player + ' / ' + market : ''}">
+    <input type="text" placeholder="Odds" value="${odds}">
+    <input type="number" placeholder="Stake" value="${stake}" step="1">
+    <select>
+      <option value="">Pending</option>
+      <option value="win">Won ✅</option>
+      <option value="loss">Lost ❌</option>
+      <option value="push">Push</option>
+    </select>
+    <input type="number" placeholder="P/L" step="0.01" readonly style="color:var(--text-dim);">
+    <button class="delete-btn" onclick="document.getElementById('${id}').remove()">×</button>
+  `;
+  // Auto-calc P/L on result change
+  const sel = div.querySelector('select');
+  sel.addEventListener('change', () => {
+    const oddsVal = div.querySelectorAll('input')[1].value;
+    const stakeVal = parseFloat(div.querySelectorAll('input')[2].value) || 0;
+    const plInput = div.querySelectorAll('input')[3];
+    if (sel.value === 'win') {
+      const num = parseInt(oddsVal.replace('−','-'));
+      const profit = num > 0 ? stakeVal * (num / 100) : stakeVal * (100 / Math.abs(num));
+      plInput.value = profit.toFixed(2);
+      plInput.style.color = 'var(--accent)';
+    } else if (sel.value === 'loss') {
+      plInput.value = (-stakeVal).toFixed(2);
+      plInput.style.color = 'var(--red)';
+    } else if (sel.value === 'push') {
+      plInput.value = '0';
+      plInput.style.color = 'var(--text-dim)';
+    } else {
+      plInput.value = '';
+      plInput.style.color = 'var(--text-dim)';
+    }
+  });
+  container.appendChild(div);
+}
+
+function addPortfolioToTracker() {
+  if (!window._lastPortfolio) return;
+  window._lastPortfolio.forEach(r => {
+    addTrackerRow(r.player, r.market, r.odds, r.betSize.toFixed(0));
+  });
+  // Switch to tracker tab
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-tab="tracker"]').classList.add('active');
+  document.getElementById('tab-tracker').classList.add('active');
+}
+
+function calcTrackerTotals() {
+  const entries = document.querySelectorAll('#trackerEntries .tracker-entry');
+  let totalStake = 0, totalPL = 0, wins = 0, losses = 0, pending = 0;
+  entries.forEach(entry => {
+    const stake = parseFloat(entry.querySelectorAll('input')[2].value) || 0;
+    const pl = parseFloat(entry.querySelectorAll('input')[3].value) || 0;
+    const result = entry.querySelector('select').value;
+    totalStake += stake;
+    totalPL += pl;
+    if (result === 'win') wins++;
+    else if (result === 'loss') losses++;
+    else pending++;
+  });
+  const roi = totalStake > 0 ? (totalPL / totalStake * 100) : 0;
+  document.getElementById('trackerSummary').innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:1rem;">
+      <div class="stat-box"><div class="stat-value" style="color:var(--gold);">$${totalStake.toFixed(0)}</div><div class="stat-label">Total Staked</div></div>
+      <div class="stat-box"><div class="stat-value" style="color:${totalPL >= 0 ? 'var(--accent)' : 'var(--red)'};">$${totalPL.toFixed(0)}</div><div class="stat-label">Profit / Loss</div></div>
+      <div class="stat-box"><div class="stat-value" style="color:${roi >= 0 ? 'var(--accent)' : 'var(--red)'};">${roi.toFixed(1)}%</div><div class="stat-label">ROI</div></div>
+      <div class="stat-box"><div class="stat-value" style="color:var(--accent);">${wins}</div><div class="stat-label">Wins</div></div>
+      <div class="stat-box"><div class="stat-value" style="color:var(--red);">${losses}</div><div class="stat-label">Losses</div></div>
+      <div class="stat-box"><div class="stat-value" style="color:var(--text-dim);">${pending}</div><div class="stat-label">Pending</div></div>
+    </div>
+  `;
+}
+
+function exportTracker() {
+  const entries = document.querySelectorAll('#trackerEntries .tracker-entry');
+  const rows = [['Bet','Odds','Stake','Result','P/L']];
+  entries.forEach(entry => {
+    const inputs = entry.querySelectorAll('input');
+    const sel = entry.querySelector('select');
+    rows.push([inputs[0].value, inputs[1].value, inputs[2].value, sel.value, inputs[3].value]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fairway-edge-tracker.csv';
+  a.click();
+}
+
+// ===== ODDS COMPARISON TOOL =====
+let compareRows = 0;
+function addCompareRow(player='', dk='', fd='', kalshi='') {
+  compareRows++;
+  const id = 'cmp_' + compareRows;
+  const container = document.getElementById('compareEntries');
+  const div = document.createElement('div');
+  div.id = id;
+  div.style.cssText = 'display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.5rem; align-items:center;';
+  div.innerHTML = `
+    <input type="text" placeholder="e.g. Scheffler Win" value="${player}" style="font-family:'Outfit',sans-serif;">
+    <input type="text" placeholder="+300" value="${dk}" class="cmp-dk">
+    <input type="text" placeholder="+350" value="${fd}" class="cmp-fd">
+    <input type="text" placeholder="15%" value="${kalshi}" class="cmp-kalshi">
+  `;
+  container.appendChild(div);
+}
+
+function clearCompare() {
+  const container = document.getElementById('compareEntries');
+  // Keep header row
+  const header = container.firstElementChild;
+  container.innerHTML = '';
+  container.appendChild(header);
+  compareRows = 0;
+  document.getElementById('compareResults').innerHTML = '';
+  addCompareRow(); addCompareRow(); addCompareRow();
+}
+
+function analyzeComparison() {
+  const rows = document.querySelectorAll('#compareEntries > div:not(:first-child)');
+  const results = [];
+
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const label = inputs[0].value.trim();
+    if (!label) return;
+
+    const books = [
+      { name: 'DraftKings', odds: inputs[1].value.trim(), el: inputs[1] },
+      { name: 'FanDuel', odds: inputs[2].value.trim(), el: inputs[2] },
+      { name: 'Kalshi', odds: inputs[3].value.trim(), el: inputs[3] },
+    ].filter(b => b.odds);
+
+    if (books.length < 2) return;
+
+    const bookData = books.map(b => {
+      const implied = oddsToImpliedProb(b.odds);
+      const american = implied > 0 ? impliedProbToAmerican(implied) : b.odds;
+      return { ...b, implied, american };
+    });
+
+    // Find best odds (lowest implied probability = best price for bettor)
+    const bestBook = bookData.reduce((best, b) => b.implied < best.implied && b.implied > 0 ? b : best, bookData[0]);
+    const worstBook = bookData.reduce((worst, b) => b.implied > worst.implied ? b : worst, bookData[0]);
+
+    // Highlight best odds inputs
+    books.forEach(b => b.el.classList.remove('best-odds'));
+    bestBook.el.classList.add('best-odds');
+
+    // Check for arbitrage: sum of lowest implied probs across outcomes
+    // For now, flag when spread between best and worst is > 3%
+    const spread = worstBook.implied - bestBook.implied;
+    const isArbCandidate = spread > 0.03;
+
+    results.push({ label, bookData, bestBook, worstBook, spread, isArbCandidate });
+  });
+
+  if (results.length === 0) {
+    document.getElementById('compareResults').innerHTML = '<div class="info-box warn">Enter odds from at least 2 books for at least 1 player to compare.</div>';
+    return;
+  }
+
+  // Render comparison results
+  let html = '<div class="card" style="border-color:var(--gold);">';
+  html += '<div class="card-title"><span class="icon">🏆</span> Best Odds & Opportunities</div>';
+
+  // Summary
+  const arbCount = results.filter(r => r.isArbCandidate).length;
+  html += `<div class="summary-narrative" style="margin-bottom:1rem;">`;
+  html += `Compared <strong>${results.length} bets</strong> across sportsbooks. `;
+  if (arbCount > 0) {
+    html += `Found <span class="highlight">${arbCount} significant pricing discrepanc${arbCount > 1 ? 'ies' : 'y'}</span> (3%+ spread) — these represent the best line-shopping opportunities. `;
+  }
+  html += `Always bet at the book offering the best odds — even small differences compound over time.`;
+  html += `</div>`;
+
+  // Results table
+  html += '<div style="overflow-x:auto;"><table class="results-table"><thead><tr>';
+  html += '<th>Bet</th><th>Best Book</th><th>Best Odds</th><th>Worst Odds</th><th>Spread</th><th>Savings</th><th>Flag</th>';
+  html += '</tr></thead><tbody>';
+
+  results.forEach(r => {
+    const savingsPct = (r.spread * 100).toFixed(1);
+    html += `<tr>
+      <td class="player-name">${r.label}</td>
+      <td style="color:var(--accent); font-weight:600;">${r.bestBook.name}</td>
+      <td style="color:var(--accent);">${r.bestBook.american} <span style="color:var(--text-muted);font-size:0.7rem;">(${(r.bestBook.implied*100).toFixed(1)}%)</span></td>
+      <td style="color:var(--red);">${r.worstBook.american} <span style="color:var(--text-muted);font-size:0.7rem;">(${(r.worstBook.implied*100).toFixed(1)}%)</span></td>
+      <td class="${r.spread > 0.03 ? 'positive' : 'neutral'}">${savingsPct}%</td>
+      <td class="positive">+$${(r.spread * 100).toFixed(0)}<span style="color:var(--text-muted);font-size:0.7rem;">/100</span></td>
+      <td>${r.isArbCandidate ? '<span class="arb-badge">🔥 SHOP</span>' : '<span style="color:var(--text-muted);">—</span>'}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+
+  // Book-level summary
+  const bookWins = {};
+  results.forEach(r => { bookWins[r.bestBook.name] = (bookWins[r.bestBook.name] || 0) + 1; });
+  const sortedBooks = Object.entries(bookWins).sort((a,b) => b[1] - a[1]);
+  if (sortedBooks.length > 1) {
+    html += `<div style="margin-top:1rem; font-size:0.82rem; color:var(--text-dim);">`;
+    html += `<strong style="color:var(--text);">Best book overall:</strong> `;
+    html += sortedBooks.map(([name, count]) => `${name} (${count} best price${count > 1 ? 's' : ''})`).join(' → ');
+    html += `</div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('compareResults').innerHTML = html;
+}
+
+// Init compare rows
+addCompareRow(); addCompareRow(); addCompareRow();
+
+// ===== PLAYER DB VIEW =====
+function renderDB(filter = '') {
+  const body = document.getElementById('dbBody');
+  const filtered = filter
+    ? PLAYERS.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()))
+    : PLAYERS;
+
+  body.innerHTML = filtered.map((p, i) => `
+    <tr>
+      <td style="color:var(--text-muted);">${PLAYERS.indexOf(p) + 1}</td>
+      <td class="player-name">${p.name}</td>
+      <td><span class="chip chip-${p.tier === 'Elite' ? 'gold' : p.tier === 'Top' ? 'green' : p.tier === 'Solid' ? 'blue' : 'purple'}">${p.tier}</span></td>
+      <td style="font-weight:600; color:${p.sg[0] > 1.5 ? 'var(--accent)' : p.sg[0] > 0.8 ? 'var(--blue)' : 'var(--text-dim)'};">${p.sg[0].toFixed(2)}</td>
+      <td>${p.sg[1].toFixed(2)}</td>
+      <td>${p.sg[2].toFixed(2)}</td>
+      <td>${p.sg[3].toFixed(2)}</td>
+      <td>${p.sg[4].toFixed(2)}</td>
+      <td><button class="btn btn-secondary btn-sm" style="padding:0.25rem 0.5rem;font-size:0.7rem;" onclick="editPlayer('${p.name.replace(/'/g,"\\'")}')">Edit</button></td>
+    </tr>
+  `).join('');
+}
+function filterDB() { renderDB(document.getElementById('dbSearch').value); }
+
+function editPlayer(name) {
+  const p = PLAYERS.find(pp => pp.name === name);
+  if (!p) return;
+  const newTotal = prompt(`Edit SG:Total for ${name} (current: ${p.sg[0]})`, p.sg[0]);
+  if (newTotal !== null) p.sg[0] = parseFloat(newTotal) || p.sg[0];
+  const newApp = prompt(`Edit SG:Approach for ${name} (current: ${p.sg[2]})`, p.sg[2]);
+  if (newApp !== null) p.sg[2] = parseFloat(newApp) || p.sg[2];
+  renderDB(document.getElementById('dbSearch').value);
+}
+
+function showAddPlayer() {
+  document.getElementById('addPlayerForm').style.display =
+    document.getElementById('addPlayerForm').style.display === 'none' ? 'block' : 'none';
+}
+function addNewPlayer() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) return alert('Enter a player name');
+  const sg = [
+    parseFloat(document.getElementById('newSGT').value) || 0,
+    parseFloat(document.getElementById('newOTT').value) || 0,
+    parseFloat(document.getElementById('newAPP').value) || 0,
+    parseFloat(document.getElementById('newATG').value) || 0,
+    parseFloat(document.getElementById('newPUTT').value) || 0,
+  ];
+  const tier = sg[0] > 1.5 ? 'Elite' : sg[0] > 1.0 ? 'Top' : sg[0] > 0.5 ? 'Solid' : 'Mid';
+  PLAYERS.push({ name, sg, tier });
+  PLAYERS.sort((a,b) => b.sg[0] - a.sg[0]);
+  document.getElementById('dbTotal').textContent = PLAYERS.length;
+  document.getElementById('dbCount').textContent = PLAYERS.length;
+  renderDB();
+  document.getElementById('addPlayerForm').style.display = 'none';
+  document.getElementById('newName').value = '';
+}
+
+// Init DB
+renderDB();
+
+// Add a few starter tracker rows
+addTrackerRow();
+addTrackerRow();
+</script>
+
+</body>
+</html>
